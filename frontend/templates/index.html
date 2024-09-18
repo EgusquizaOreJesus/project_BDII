@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySGBD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>MySGBD</h1>
+        <h2>AVL, Sequential File, Extendible Hashing</h2>
+    </div>
+
+    <div id="big-container">
+
+        <div id="databases">
+            <div><p>Table1</p></div>
+            <div><p>Table2</p></div>
+        </div>
+        <div id="query-container">
+            <form action="/" method="post">
+                <textarea id="queries" name="queries"></textarea>
+                <input type="submit" value="Execute" id="submit">
+
+            </form>
+        </div>
+
+    </div>
+
+    <div id="response-container">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Last Name</th>
+                <th>Career</th>
+            </tr>
+            {% for person in people %}
+                <tr>
+                    <td>{{ person.name }}</td>
+                    <td>{{ person.last_name }}</td>
+                    <td>{{ person.career}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+
+</body>
+</html>
