@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API C++ Flask</title>
+    <script>
+        async function enviarSuma() {
+            const a = document.getElementById("num1").value;
+            const b = document.getElementById("num2").value;
+            const response = await fetch('http://localhost:5000/suma', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ a: a, b: b }),
+            });
+            const result = await response.json();
+            document.getElementById("resultadoSuma").innerText = "Resultado: " + result.resultado;
+        }
+
+        async function enviarVariable() {
+            const variable = document.getElementById("variable").value;
+            const response = await fetch('http://localhost:5000/print_variable', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ var: variable }),
+            });
+            const result = await response.json();
+            document.getElementById("mensajePrint").innerText = result.message;
+        }
+    </script>
+</head>
+<body>
+    <h1>Interfaz API C++ con Flask</h1>
+
+    <h2>Suma de dos números</h2>
+    <input type="number" id="num1" placeholder="Número 1">
+    <input type="number" id="num2" placeholder="Número 2">
+    <button onclick="enviarSuma()">Enviar Suma</button>
+    <p id="resultadoSuma"></p>
+
+    <h2>Imprimir Variable</h2>
+    <input type="text" id="variable" placeholder="Variable">
+    <button onclick="enviarVariable()">Enviar Variable</button>
+    <p id="mensajePrint"></p>
+</body>
+</html>
