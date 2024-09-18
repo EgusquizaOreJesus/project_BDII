@@ -3,20 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MySGBD</title>
+    <title>DataFusionDB</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="header">
-        <h1>MySGBD</h1>
+        <h1>DataFusionDB</h1>
         <h2>AVL, Sequential File, Extendible Hashing</h2>
     </div>
 
     <div id="big-container">
 
         <div id="databases">
-            <div><p>Table1</p></div>
-            <div><p>Table2</p></div>
+            <div class="table-name-container">
+                <img src="../static/table-icon.png" alt="table icon">
+                <p class="table-name">Table1</p>
+            </div>
+            <ul class="table-attributes">
+                <li>App_name</li>
+                <li>App_id</li>
+                <li>category</li>
+                <li>rating</li>
+                <li>rating_count</li>
+                <li>installs</li>
+                <li>minimum_installs</li>
+                <li>maximum_installs</li>
+                <li>free</li>
+                <li>price</li>
+                <li>currency</li>
+                <li>size</li>
+            </ul>
+            <div class="table-name-container">
+                <img src="../static/table-icon.png" alt="table icon">
+                <p class="table-name">Table2</p>
+            </div>
         </div>
         <div id="query-container">
             <form action="/" method="post">
@@ -25,25 +45,51 @@
 
             </form>
         </div>
-
     </div>
 
     <div id="response-container">
         <table>
             <tr>
-                <th>Name</th>
-                <th>Last Name</th>
-                <th>Career</th>
+                <th>App_name</th>
+                <th>App_id</th>
+                <th>category</th>
+                <th>rating</th>
+                <th>rating_count</th>
+                <th>installs</th>
+                <th>minimum_installs</th>
+                <th>maximum_installs</th>
+                <th>free</th>
+                <th>price</th>
+                <th>currency</th>
+                <th>size</th>
             </tr>
-            {% for person in people %}
-                <tr>
-                    <td>{{ person.name }}</td>
-                    <td>{{ person.last_name }}</td>
-                    <td>{{ person.career}}</td>
-                </tr>
-            {% endfor %}
+            {% for a in applications %}
+            <tr>
+                <td>{{ a.app_name }}</td>
+                <td>{{ a.app_id }}</td>
+                <td>{{ a.category }}</td>
+                <td>{{ a.rating }}</td>
+                <td>{{ a.rating_count }}</td>
+                <td>{{ a.installs }}</td>
+                <td>{{ a.minimum_installs }}</td>
+                <td>{{ a.maximum_installs }}</td>
+                <td>{{ a.free }}</td>
+                <td>{{ a.price }}</td>
+                <td>{{ a.currency }}</td>
+                <td>{{ a.size }}</td>
+
+            </tr>
+        {% endfor %}
         </table>
     </div>
+
+    
+    <div id="footer">
+        <p class="footer-content">Table {{table}}</p>
+        <p> - </p>
+        <p class="footer-content">{{rows}} filas</p>
+    </div>
+
 
 
 </body>

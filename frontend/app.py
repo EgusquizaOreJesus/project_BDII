@@ -1,25 +1,18 @@
 from flask import Flask, render_template, redirect, request
+from utils import * 
 
 app = Flask(__name__)
 
-class Person:
-    name : str
-    last_name : str
-    career : str
-    def __init__(self, n, l, c):
-        self.name = n
-        self.last_name = l
-        self.career = c
 
 people = [Person("Sebastian", "Chu", "CS"),
           Person("Paolo", "Medrano", "DS"),
           Person("Jesus", "Egusquiza", "CS"),
           Person("Fabricio", "Chavez", "CS")]
 
-def separate_queries(input : str):
-    queries = [query.strip() for query in input.split(';')]
-    return queries
 
+apps = read_csv("playstore_mini.csv")
+current_table = "playstore"
+num_rows = len(apps)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -27,7 +20,10 @@ def index():
         print(request.form["queries"])
         return redirect('/')
     else:
-        return render_template('index.html', people = people)
+        return render_template('index.html', 
+                               applications = apps, 
+                               table = current_table,
+                               rows = num_rows)
 
 if __name__ == "__main__":
     app.run(debug = True)
