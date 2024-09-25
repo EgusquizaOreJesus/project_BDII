@@ -123,11 +123,15 @@ public:
     ifile.seekp(0, ios::end);
     ifile.write((char *)&record, sizeof(Record));
 
-    // Actualizar size del archivo donde se guardan los nuevos inserts
+    // Leer size de nuevo registro
     int isize;
     ifile.seekg(0, ios::beg);
     ifile.read((char *)&isize, sizeof(int));
+
+    // Actualizar size
     isize++;
+    ifile.seekp(0, ios::beg);
+    ifile.write((char *)&isize, sizeof(int));
     ifile.close();
 
     // Obtener el size del archivo main
@@ -137,7 +141,8 @@ public:
 
     // Se reconstruye apenas llega al limite de elementos
     if (isize == floor(log2(msize)))
-      rebuild();
+      cout << "rebuild" << endl;
+    // rebuild();
   }
 
   void rebuild()
@@ -270,9 +275,9 @@ public:
     return Record();
   }
 
-  void print_all(string filename)
+  void print_all()
   {
-    ifstream file(filename, ios::binary);
+    ifstream file(main_file, ios::binary);
     Record record;
     int size;
     file.read((char *)&size, sizeof(int));
@@ -284,15 +289,43 @@ public:
   }
 };
 
+void build_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+}
+
+void show_all_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+  file.print_all();
+}
+
+void search_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+  Record record = file.search(700);
+  record.show();
+}
+
+void rebuild_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+  file.insert(150);
+  file.insert(550);
+  file.insert(950);
+  file.print_all();
+}
+
 int main()
 {
-  Sequential seq("main.bin");
-  seq.buildCSV("test.csv");
-  seq.print_all("main.bin");
-
-  Record record;
-  record = seq.search(700);
-  record.show();
+  // build_test();
+  // show_all_test();
+  // search_test();
+  rebuild_test();
 
   return 0;
 }
