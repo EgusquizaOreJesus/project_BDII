@@ -65,7 +65,6 @@ struct Record<double> {
     bool operator>(const double key) const {
         return this->key > key;
     }
-
 };
 
 template<>
@@ -81,8 +80,36 @@ struct Record<int> {
     // para un arbol binario
     int left = -1; // 4 bytes
     int right = -1;    // 4 bytes
-    int height = 0;     // 4 bytes
-    int next_del = -2;  // 4 bytes
+    int height = 0;    // 4 bytes
+    int next_del = -2; // 4 bytes
+
+    string getName()
+    {
+        return string(name);
+    }
+    string getGenre()
+    {
+        return string(genre);
+    }
+    string getType()
+    {
+        return string(type);
+    }
+    void setName(string name_)
+    {
+        strcpy(name, name_.c_str());
+        name[name_.length()] = '\0';
+    }
+    void setGenre(string genre_)
+    {
+        strcpy(genre, genre_.c_str());
+        genre[genre_.length()] = '\0';
+    }
+    void setType(string type_)
+    {
+        strcpy(type, type_.c_str());
+        type[type_.length()] = '\0';
+    }
 
     void show() {
         cout << "Anime ID: " << anime_id << '\n';
@@ -142,8 +169,65 @@ struct Record<const char*> {
     // para un arbol binario
     int left = -1; // 4 bytes
     int right = -1;    // 4 bytes
-    int height = 0;     // 4 bytes
-    int next_del = -2;  // 4 bytes
+    int height = 0;    // 4 bytes
+    int next_del = -2; // 4 bytes
+
+    string getApp_name()
+    {
+        return string(App_name);
+    }
+    string getCategory()
+    {
+        return string(category);
+    }
+    std::string getApp_id() const
+    {
+        return std::string(App_id);
+    }
+
+    std::string getInstalls() const
+    {
+        return std::string(installs);
+    }
+
+    std::string getCurrency() const {
+        return std::string(currency);
+    }
+
+    std::string getSize() const {
+        return std::string(size);
+    }
+
+    void setApp_name(string app_name) {
+        strcpy(App_name, app_name.c_str());
+        App_name[app_name.length()] = '\0';
+    }
+
+    void setApp_id(const std::string &app_id) {
+        strncpy(App_id, app_id.c_str(), sizeof(App_id) - 1);
+        App_id[sizeof(App_id) - 1] = '\0';
+    }
+    void setCategory(string category_) {
+        strcpy(category, category_.c_str());
+        category[category_.length()] = '\0';
+    }
+    void setInstalls(const std::string &installs_)
+    {
+        strncpy(installs, installs_.c_str(), sizeof(installs) - 1);
+        installs[sizeof(installs) - 1] = '\0';
+    }
+
+    void setCurrency(const std::string &currency_)
+    {
+        strncpy(currency, currency_.c_str(), sizeof(currency) - 1);
+        currency[sizeof(currency) - 1] = '\0';
+    }
+
+    void setSize(const std::string &size_)
+    {
+        strncpy(size, size_.c_str(), sizeof(size) - 1);
+        size[sizeof(size) - 1] = '\0';
+    }
 
     friend ostream& operator<<(ostream& os, const Record<const char*>& record) {
         os << record.App_id;
