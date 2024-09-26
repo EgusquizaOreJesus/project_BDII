@@ -10,9 +10,10 @@ using namespace std;
 struct Record
 {
   int key;
+  bool is_removed;
 
-  Record() : key(0) {}
-  Record(int _key) : key(_key) {}
+  Record() : key(0), is_removed(false) {}
+  Record(int _key) : key(_key), is_removed(false) {}
 
   bool fromCSV(const string &line)
   {
@@ -35,7 +36,7 @@ struct Record
 
   void show()
   {
-    cout << key << endl;
+    cout << key << ", " << boolalpha << is_removed << endl;
   }
 };
 
@@ -67,14 +68,6 @@ public:
     }
     // En caso existiera
     file.close();
-  }
-
-  int get_size(ifstream &file)
-  {
-    int size;
-    file.seekg(0, ios::beg);
-    file.read((char *)&size, sizeof(int));
-    return size;
   }
 
   void buildCSV(string csv_file)
@@ -162,7 +155,7 @@ public:
     // Traer registros del archivo de los nuevos inserts a RAM
     int isize;
     ifile.read((char *)&isize, sizeof(int));
-  
+
     vector<Record> new_records;
     for (int i = 0; i < isize; i++)
     {
@@ -236,21 +229,22 @@ public:
 
     // Actualizar la cantidad de registros en el nuevo archivo
     nfile.seekp(0, ios::beg);
-    nfile.write((char*)&nsize, sizeof(int));
+    nfile.write((char *)&nsize, sizeof(int));
 
     // Cerrar los archivos
     ifile.close();
     mfile.close();
     nfile.close();
 
-    // Eliminar archivos extra y solo nos quedamos con el nuevo archivo. 
+    // Eliminar archivos extra y solo nos quedamos con el nuevo archivo.
     remove((char *)&main_file);
     remove((char *)&insert_file);
     rename((char *)&new_file, (char *)&main_file);
   }
 
-  Record search(int key)
+  int search(int key)
   {
+    // Primero se busca en el archivo principal
     ifstream file(main_file, ios::binary);
     if (!file)
       throw runtime_error("Error en search");
@@ -258,6 +252,7 @@ public:
     int low = 0;
     int high;
     int mid;
+    int pos;
 
     file.read((char *)&high, sizeof(int));
     high = high - 1;
@@ -267,14 +262,15 @@ public:
     while (low <= high)
     {
       mid = (high + low) / 2;
+      pos = mid * sizeof(Record) + sizeof(int);
 
-      file.seekg(mid * sizeof(Record), ios::beg);
+      file.seekg(pos, ios::beg);
       file.read((char *)&record, sizeof(Record));
 
       if (record.key == key)
       {
         file.close();
-        return record;
+        return pos;
       }
 
       else if (record.key < key)
@@ -286,7 +282,41 @@ public:
 
     cout << "Record not found" << endl;
     file.close();
-    return Record();
+    return -1;
+  }
+
+  bool remove_record(int key)
+  {
+    int pos = search(key);
+    if (pos == -1)
+      return false;
+    else
+    {
+      fstream file(main_file, ios::in | ios::out | ios::binary);
+      Record record = read_record(pos);
+      record.is_removed = true;
+      write_record(record, pos);
+      file.close();
+      return true;
+    }
+  }
+
+  Record read_record(int pos)
+  {
+    Record record;
+    ifstream file(main_file, ios::binary);
+    file.seekg(pos, ios::beg);
+    file.read((char *)&record, sizeof(Record));
+    file.close();
+    return record;
+  }
+
+  void write_record(Record record, int pos)
+  {
+    fstream file(main_file, ios::in | ios::out | ios::binary);
+    file.seekp(pos, ios::beg);
+    file.write((char *)&record, sizeof(Record));
+    file.close();
   }
 
   void print_all()
@@ -296,7 +326,10 @@ public:
     int size;
     file.read((char *)&size, sizeof(int));
     while (file.read((char *)&record, sizeof(Record)))
+    {
+      if (record.is_removed == false)
       record.show();
+    }
 
     cout << "size: " << size << endl;
     file.close();
@@ -320,7 +353,11 @@ void search_test()
 {
   Sequential file("main.bin");
   file.buildCSV("test.csv");
-  Record record = file.search(700);
+
+  Record record;
+  int pos = file.search(700); // Search retorna una posicion
+
+  record = file.read_record(pos);
   record.show();
 }
 
@@ -334,12 +371,20 @@ void rebuild_test()
   file.print_all();
 }
 
+void remove_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+  file.remove_record(900);
+  file.print_all();
+}
+
 int main()
 {
-  build_test();
-  show_all_test();
-  search_test();
-  rebuild_test();
-
+  // build_test();
+  // show_all_test();
+  // search_test();
+  // rebuild_test();
+  remove_test();
   return 0;
 }
