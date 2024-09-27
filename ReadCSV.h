@@ -10,122 +10,80 @@
 using namespace std;
 
 template<typename TK>
-struct Record {
+struct BaseRecord {
+public:
     TK key;
-};
-// Estructura del registro
-template<>
-struct Record<double> {
-    int anime_id;
-    char name[100];
-    char genre[100];
-    char type[50];
-    int episodes;
-    double key; // Llave para ordenar
-    int members;
 
-    // para un arbol binario
-    int left = -1; // 4 bytes
-    int right = -1;    // 4 bytes
-    int height = 0;     // 4 bytes
-    int next_del = -2;  // 4 bytes
+    // campos comunes
+    // Campos comunes al AVL
+    int left = -1;
+    int right = -1;
+    int height = 0;
+    int next_del = -2;
 
-    friend ostream& operator<<(ostream& os, const Record<double>& record) {
-        os << record.key;
-        return os;
-    }
-    bool operator==(const Record<double>& other) const {
-        return key == other.key;
-    }
-    bool operator==(const double key) const {
-        return this->key == key;
-    }
-    void show() {
-        cout << "Anime ID: " << anime_id << '\n';
-        cout << "Name: " << name << '\n';
-        cout << "Genre: " << genre << '\n';
-        cout << "Type: " << type << '\n';
-        cout << "Episodes: " << episodes << '\n';
-        cout << "Rating: " << key << '\n';
-        cout << "Members: " << members << '\n';
-        cout << '\n';
-    }
     void showAVL(){
         cout << key << " | " << left << " | " << right << " | " << height << endl;
     }
-    bool operator<(const Record<double>& other) const {
-        return key < other.key;
-    }
-    bool operator>(const Record<double>& other) const {
-        return key > other.key;
-    }
-    bool operator<(const double key) const {
-        return this->key < key;
-    }
-    bool operator>(const double key) const {
-        return this->key > key;
-    }
-
 };
 
+template<typename TK>
+struct Record : BaseRecord<TK> {};
+
 template<>
-struct Record<int> {
-    int anime_id;
-    char name[100];
-    char genre[100];
-    char type[50];
-    int episodes;
-    double key; // Llave para ordenar
-    int members;
+struct Record<const char*> : public BaseRecord<const char*> {
+    char key[100];
+    char title[200];
+    char channel_title[100];
+    long long views;
+    long long likes;
+    long long dislikes;
+    long long comment_count;
 
-    // para un arbol binario
-    int left = -1; // 4 bytes
-    int right = -1;    // 4 bytes
-    int height = 0;     // 4 bytes
-    int next_del = -2;  // 4 bytes
-
-    void show() {
-        cout << "Anime ID: " << anime_id << '\n';
-        cout << "Name: " << name << '\n';
-        cout << "Genre: " << genre << '\n';
-        cout << "Type: " << type << '\n';
-        cout << "Episodes: " << episodes << '\n';
-        cout << "Rating: " << key << '\n';
-        cout << "Members: " << members << '\n';
-        cout << '\n';
+    string show() {
+        stringstream ss;
+        ss << "key: " << key << '\n';
+        ss << "title: " << title << '\n';
+        ss << "channel_title: " << channel_title << '\n';
+        ss << "views: " << views << '\n';
+        ss << "likes: " << likes << '\n';
+        ss << "dislikes: " << dislikes << '\n';
+        ss << "comment_count: " << comment_count << '\n';
+        ss << '\n';
+        return ss.str();
     }
 
-    friend ostream& operator<<(ostream& os, const Record<int>& record) {
-        os << record.anime_id;
+    friend ostream& operator<<(ostream& os, const Record<const char*>& record) {
+        os << record.key;
         return os;
     }
-    bool operator==(const Record<int>& other) const {
-        return anime_id == other.anime_id;
+    bool operator==(const Record<const char*>& other) const {
+        return strcmp(key, other.key) == 0;
     }
-    bool operator==(const int key) const {
-        return anime_id == key;
+
+    bool operator==(const char* key) const {
+        return strcmp(this->key, key) == 0;
     }
-    bool operator<(const Record<int>& other) const {
-        return anime_id < other.anime_id;
+
+    bool operator<(const Record<const char*>& other) const {
+        return strcmp(key, other.key) < 0;
     }
-    bool operator>(const Record<int>& other) const {
-        return anime_id > other.anime_id;
+
+    bool operator>(const Record<const char*>& other) const {
+        return strcmp(key, other.key) > 0;
     }
-    bool operator<(const int key) const {
-        return anime_id < key;
+
+    bool operator<(const char* key) const {
+        return strcmp(this->key, key) < 0;
     }
-    bool operator>(const int key) const {
-        return anime_id > key;
-    }
-    void showAVL(){
-        cout << anime_id << " | " << left << " | " << right << " | " << height << endl;
+
+    bool operator>(const char* key) const {
+        return strcmp(this->key, key) > 0;
     }
 };
-// Estructura del registro
 template<>
-struct Record<const char*> {
+struct Record<int>: public BaseRecord<const char*> {
+    char key[100];
     char App_name[100];
-    char App_id[100];
     char category[50];
     double rating;
     double rating_count;
@@ -136,63 +94,54 @@ struct Record<const char*> {
     double price;
     char currency[10];
     char size[50];
-    int anime_id = 0;
-    double key = 0; // Llave para ordenar
 
-    // para un arbol binario
-    int left = -1; // 4 bytes
-    int right = -1;    // 4 bytes
-    int height = 0;     // 4 bytes
-    int next_del = -2;  // 4 bytes
-
-    friend ostream& operator<<(ostream& os, const Record<const char*>& record) {
-        os << record.App_id;
-        return os;
+    string show() {
+        stringstream ss;
+        ss << "App Name: " << App_name << '\n';
+        ss << "App ID: " << key << '\n';
+        ss << "Category: " << category << '\n';
+        ss << "Rating: " << rating << '\n';
+        ss << "Rating Count: " << rating_count << '\n';
+        ss << "Installs: " << installs << '\n';
+        ss << "Minimum Installs: " << minimum_installs << '\n';
+        ss << "Maximum Installs: " << maximum_installs << '\n';
+        ss << "Free: " << (free ? "Yes" : "No") << '\n';
+        ss << "Price: " << price << '\n';
+        ss << "Currency: " << currency << '\n';
+        ss << "Size: " << size << '\n';
+        ss << '\n';
+        return ss.str();
     }
 
     bool operator==(const Record<const char*>& other) const {
-        return strcmp(App_id, other.App_id) == 0;
+        return strcmp(key, other.key) == 0;
     }
 
     bool operator==(const char* key) const {
-        return strcmp(this->App_id, key) == 0;
+        return strcmp(this->key, key) == 0;
     }
-    bool operator<(const Record<const char*>& other) const {
-        return strcmp(App_id, other.App_id) < 0;
-    }
-    bool operator>(const Record<const char*>& other) const {
-        return strcmp(App_id, other.App_id) > 0;
-    }
-    bool operator<(const char* key) const {
-        return strcmp(App_id, key) < 0;
-    }
-    bool operator>(const char* key) const {
-        return strcmp(App_id, key) > 0;
-    }
-    void show() {
-        cout << "App Name: " << App_name << '\n';
-        cout << "App ID: " << App_id << '\n';
-        cout << "Category: " << category << '\n';
-        cout << "Rating: " << rating << '\n';
-        cout << "Rating Count: " << rating_count << '\n';
-        cout << "Installs: " << installs << '\n';
-        cout << "Minimum Installs: " << minimum_installs << '\n';
-        cout << "Maximum Installs: " << maximum_installs << '\n';
-        cout << "Free: " << free << '\n';
-        cout << "Price: " << price << '\n';
-        cout << "Currency: " << currency << '\n';
-        cout << "Size: " << size << '\n';
-        cout << '\n';
-    }
-    void showAVL(){
-        cout << App_id << " | " << left << " | " << right << " | " << height << endl;
-    }
-};
 
+    bool operator<(const Record<int>& other) const {
+        return strcmp(key, other.key) < 0;
+    }
+
+    bool operator>(const Record<int>& other) const {
+        return strcmp(key, other.key) > 0;
+    }
+
+    bool operator<(const char* key) const {
+        return strcmp(this->key, key) < 0;
+    }
+
+    bool operator>(const char* key) const {
+        return strcmp(this->key, key) > 0;
+    }
+
+};
 // Función para eliminar las comillas alrededor de un campo
 inline std::string trimQuotes(const std::string& str) {
     if (str.front() == '"' && str.back() == '"') {
-        return str.substr(1, str.size() - 2); // Eliminar comillas al principio y al final
+        return str.substr(1, str.size() - 2);
     }
     return str;
 }
@@ -200,14 +149,13 @@ inline std::string trimQuotes(const std::string& str) {
 // Función para copiar de forma segura un string a un char[]
 inline void safeCopy(char* dest, const std::string& src, size_t size) {
     strncpy(dest, src.c_str(), size - 1);
-    dest[size - 1] = '\0'; // Asegurarse de que esté terminado en null
+    dest[size - 1] = '\0'; // Asegurar que termine en null
 }
 
-// Función para leer el archivo CSV
-template<typename TK>
-std::vector<Record<TK>> readCSV(const std::string& filename) {
+// Función para leer el archivo CSV de YouTube
+std::vector<Record<const char*>> readCSV_youtube(const std::string& filename) {
     std::ifstream file(filename);
-    std::vector<Record<TK>> records;
+    std::vector<Record<const char*>> records;
     std::string line;
 
     // Ignorar la primera línea de encabezados
@@ -216,7 +164,52 @@ std::vector<Record<TK>> readCSV(const std::string& filename) {
     // Leer cada línea
     while (std::getline(file, line)) {
         std::stringstream ss(line);
-        Record<TK> record;
+        Record<const char*> record;
+
+        std::string key, title, channel_title, views, likes, dislikes, comment_count;
+        try {
+            // Leer los campos de la línea
+            std::getline(ss, key, ',');
+            std::getline(ss, title, ',');
+            std::getline(ss, channel_title, ',');
+            std::getline(ss, views, ',');
+            std::getline(ss, likes, ',');
+            std::getline(ss, dislikes, ',');
+            std::getline(ss, comment_count, ',');
+
+            // Procesar y almacenar los valores en el Record
+            safeCopy(record.key, trimQuotes(key), sizeof(record.key));
+            safeCopy(record.title, trimQuotes(title), sizeof(record.title));
+            safeCopy(record.channel_title, trimQuotes(channel_title), sizeof(record.channel_title));
+
+            record.views = std::stoll(views);
+            record.likes = std::stoll(likes);
+            record.dislikes = std::stoll(dislikes);
+            record.comment_count = std::stoll(comment_count);
+
+            // Añadir el record al vector
+            records.push_back(record);
+        } catch (const std::exception& e) {
+//            cerr << "Error al procesar la línea: " << line << '\n';
+//            cerr << "Excepción: " << e.what() << '\n';
+        }
+    }
+
+    return records;
+}
+
+std::vector<Record<int>> readCSV_playstore(const std::string& filename) {
+    std::ifstream file(filename);
+    std::vector<Record<int>> records;
+    std::string line;
+
+    // Ignorar la primera línea de encabezados
+    std::getline(file, line);
+
+    // Leer cada línea
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        Record<int> record;
 
         std::string App_name, App_id, category, rating, rating_count, installs, minimum_installs, maximum_installs, free, price, currency, size;
 
@@ -237,7 +230,7 @@ std::vector<Record<TK>> readCSV(const std::string& filename) {
 
             // Procesar y almacenar los valores en el Record
             safeCopy(record.App_name, trimQuotes(App_name), sizeof(record.App_name));
-            safeCopy(record.App_id, trimQuotes(App_id), sizeof(record.App_id));
+            safeCopy(record.key, trimQuotes(App_id), sizeof(record.key));
             safeCopy(record.category, trimQuotes(category), sizeof(record.category));
 
             // Manejo de errores en conversión numérica
