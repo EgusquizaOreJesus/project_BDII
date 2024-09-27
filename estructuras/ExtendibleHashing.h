@@ -115,12 +115,12 @@ class ExtendibleHashing : public FileStructure<TK>{
 public:
     bool flag_update_directory = false;
     int hash_binary(Record<TK> key);   // convertir un entero a una cadena de bits
-    int hash_binary(TK key);   // convertir un entero a una cadena de bits
+    int hash_binary(const char* key);   // convertir un entero a una cadena de bits
     ExtendibleHashing(const string &fileName = "data.dat", const string &directoryName = "directory.dat");
 
     void insert(Record<TK> key);
-    Record<TK> search(TK key) override;
-    bool remove(TK key) override;
+    Record<TK> search(const char* key) override;
+    bool remove(const char* key) override;
     void split(Bucket<TK> &bucket, int index);
     void display_directory();
     void display_buckets();
@@ -129,7 +129,7 @@ public:
     void print_bucket(Bucket<TK> &bucket);
     void insert_encajado(Bucket<TK> &bucket, Record<TK> key, int pos);
     void save_directory();
-    bool remove_bucket(Bucket<TK> &bucket, TK key, int head, int pos, int index);
+    bool remove_bucket(Bucket<TK> &bucket, const char* key, int head, int pos, int index);
     ~ExtendibleHashing(){
         if (buffer.size() > 0){
             buffer.flush_to_disk();
@@ -152,8 +152,10 @@ void ExtendibleHashing<TK>::update_disk() {
     }
 }
 
+
+
 template<typename TK>
-bool ExtendibleHashing<TK>::remove(TK key){
+bool ExtendibleHashing<TK>::remove(const char* key){
     cout << "REMOVING" << endl;
     int index = hash_binary(key);
     fstream file(this->fileName, ios::binary | ios::in | ios::out);
@@ -172,7 +174,7 @@ bool ExtendibleHashing<TK>::remove(TK key){
 
 }
 template<typename TK>
-bool ExtendibleHashing<TK>::remove_bucket(Bucket<TK> &bucket, TK key, int head, int pos, int index) {
+bool ExtendibleHashing<TK>::remove_bucket(Bucket<TK> &bucket, const char* key, int head, int pos, int index) {
     for (int i = 0; i < bucket.size; ++i) {
         if (bucket.records[i] == key){
             cout << "Key encontrado" << endl;
@@ -298,7 +300,7 @@ void ExtendibleHashing<TK>::split(Bucket<TK> &bucket, int index) {
 }
 
 template<typename TK>
-Record<TK> ExtendibleHashing<TK>::search(TK key){
+Record<TK> ExtendibleHashing<TK>::search(const char* key){
     cout << "Buscando" << endl;
     cout << "key: " << key << endl;
     int index = hash_binary(key);
@@ -503,24 +505,15 @@ void ExtendibleHashing<TK>::display_buckets() {
     file.close();
 
 }
-
 template<typename TK>
-int ExtendibleHashing<TK>::hash_binary(TK key) {
+int ExtendibleHashing<TK>::hash_binary(const char* key){
     size_t hashcode;
-    if (typeid(TK) == typeid(int)){
-        hashcode = hasher((to_string(key)));
-    }
-    hashcode = hasher((to_string(key)));
+    hashcode = hasher(key);
     int index = hashcode % int(pow(2, globalDepth));
     return index;
-}
-template<>
-int ExtendibleHashing<const char*>::hash_binary(const char* key) {
-    size_t hashcode;
-    hashcode = hasher(((key)));
-    int index = hashcode % int(pow(2, globalDepth));
-    return index;
-}
+};
+
+
 
 template<typename TK>
 int ExtendibleHashing<TK>::hash_binary(Record<TK> key) {

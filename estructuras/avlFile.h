@@ -21,7 +21,7 @@ private:
     int pos_root;
     int head = -1;
     void insert(fstream &file, int& parent,int &pos, Record<TK> record, bool isRight = false);
-    bool remove(fstream &file, long parent,long pos_node, TK key);
+    bool remove(fstream &file, long parent,long pos_node, const char* key);
     int height(long pos_node, fstream &file);
     void update_head(long pos_node, Record<TK> a, fstream &file);
     void updateHeight(long pos_node, fstream &file);
@@ -42,10 +42,10 @@ public:
     AVLFile(string filename);
     void insert(Record<TK> record) override;
     void printAll() override;
-    Record<TK> search(TK key) override;
+    Record<TK> search(const char* key) override;
     void inorder();
     void bfs();
-    bool remove(TK key) override;
+    bool remove(const char* key) override;
     ~AVLFile() = default;
 
 };
@@ -126,7 +126,7 @@ void AVLFile<TK>::insert(fstream &file, int &parent, int &pos, Record<TK> record
 }
 
 template<typename TK>
-bool AVLFile<TK>::remove(fstream &file, long parent, long pos_node, TK key) {
+bool AVLFile<TK>::remove(fstream &file, long parent, long pos_node, const char* key) {
     if (pos_node == -1){
         cerr << "no se encontro el registro -> ";
         return false;
@@ -500,7 +500,7 @@ void AVLFile<TK>::printAll() {
 }
 
 template<typename TK>
-Record<TK> AVLFile<TK>::search(TK key){
+Record<TK> AVLFile<TK>::search(const char* key){
     fstream file(filename, ios::in | ios::out | ios::binary);
     Record<TK> a;
     long pos = pos_root;
@@ -549,7 +549,7 @@ void AVLFile<TK>::bfs() {
 }
 
 template<typename TK>
-bool AVLFile<TK>::remove(TK key) {
+bool AVLFile<TK>::remove(const char* key) {
     fstream file(filename, ios::in | ios::out | ios::binary);
     bool result = remove(file,pos_root, pos_root, key);
     file.close();

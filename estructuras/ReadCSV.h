@@ -12,8 +12,7 @@ using namespace std;
 template<typename TK>
 struct BaseRecord {
 public:
-    TK key;
-
+    char key[100];
     // campos comunes
 
 
@@ -82,7 +81,7 @@ struct Record<const char*> : public BaseRecord<const char*> {
     }
 };
 template<>
-struct Record<int>: public BaseRecord<const char*> {
+struct Record<int>: public BaseRecord<int> {
     char key[100];
     char App_name[100];
     char category[50];

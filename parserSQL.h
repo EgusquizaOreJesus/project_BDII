@@ -232,8 +232,6 @@ void Parser<TK>::parseCreateTable() {
             strcpy(fileStructure, "extendibleFilePlaystore");
         }
         else if (tableName == "Youtube"){
-            cout << "records size: " << records.size() << endl;
-            cout << records[0].key << endl;
             for (int i=0; i < records.size(); i++){
                 instance->insert(records[i]);
             }
@@ -259,7 +257,7 @@ void Parser<TK>::parseSelect() {
         if (condition.op == "=") {
             const char* key = condition.value1.c_str();
             Record<TK> result = instance->search(key);
-
+            cout << result.show() << endl;
         }else if (condition.op == "between") {
             vector<Record<TK>> results;
         }

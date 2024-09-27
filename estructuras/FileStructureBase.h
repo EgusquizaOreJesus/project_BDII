@@ -10,7 +10,7 @@ struct FileStructure {
     // Método virtual para la inserción, genérico con plantilla
     virtual void insert(Record<TK> record) = 0;
     virtual void printAll() = 0;
-    virtual bool remove(TK key) = 0;
+    virtual bool remove(const char* key) = 0;
     virtual Record<TK> search(const char* key) = 0;
 
     // extendible
