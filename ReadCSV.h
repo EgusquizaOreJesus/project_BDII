@@ -20,6 +20,7 @@ public:
     int right = -1;
     int height = 0;
     int next_del = -2;
+    bool is_removed;
 
     void showAVL(){
         cout << key << " | " << left << " | " << right << " | " << height << endl;

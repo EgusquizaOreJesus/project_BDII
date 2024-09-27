@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cmath>
 #include <algorithm>
-#include "RecordSeq.h"
+#include "ReadCSV.h"
 using namespace std;
 
 class Sequential
@@ -15,10 +15,14 @@ private:
   string main_file;
   string insert_file;
 
-  static bool compare_key(const Record &a, const Record &b)
-  {
-    return a.key < b.key;
-  }
+  // static bool compare_key(const Record<const char *> &a, const Record<const char *> &b)
+  // {
+  //   return a.key < b.key;
+  // }
+
+  static bool compare_key(const Record<const char*>& a, const Record<const char*>& b) {
+    return strcmp(a.key, b.key) < 0;
+}
 
 public:
   Sequential() {}
@@ -41,33 +45,30 @@ public:
 
   void buildCSV(string csv_file)
   {
-    fstream file(main_file, ios::in | ios::out | ios::binary); // Se construye el archivo principal
-    ifstream csv(csv_file);                                    // Archivo CSV
-    string line;
+    // Obtener CSV y ordenarlo
+    vector<Record<const char *>> records = readCSV_youtube(csv_file);
+    sort(records.begin(), records.end(), compare_key);
+
+    // Se construye el archivo principal
+    fstream file(main_file, ios::in | ios::out | ios::binary);
 
     // Al construir la cantidad de registros es 0
     int size = 0;
 
-    while (getline(csv, line))
+    for (int i = 0; i < records.size(); i++)
     {
-      Record record;
-
-      if (record.fromCSV(line)) // Convertir la línea CSV en un objeto Record
-      {
-        file.seekp(0, ios::end);
-        file.write((char *)&record, sizeof(Record));
-        size++;
-      }
+      file.seekp(0, ios::end);
+      file.write((char *)&records[i], sizeof(Record<const char *>));
+      size++;
     }
 
     file.seekp(0, ios::beg);
     file.write((char *)&size, sizeof(int));
 
-    csv.close();
     file.close();
   }
 
-  void insert(Record record)
+  void insert(Record<const char *> record)
   {
     // Crear el archivo ifile si aun no lo esta
     ifstream file(insert_file, ios::binary);
@@ -83,7 +84,7 @@ public:
     // Escribir nuevo registro
     fstream ifile(insert_file, ios::in | ios::out | ios::binary);
     ifile.seekp(0, ios::end);
-    ifile.write((char *)&record, sizeof(Record));
+    ifile.write((char *)&record, sizeof(Record<const char *>));
 
     // Leer size de nuevo registro
     int isize;
@@ -128,16 +129,16 @@ public:
       int nsize = 0;
       nfile.write((char *)&nsize, sizeof(int));
 
-      Record main_record;
+      Record<const char *> main_record;
 
       int msize;
       mfile.read((char *)&msize, sizeof(int));
 
       for (int i = 0; i < msize; i++)
       {
-        mfile.read((char *)&main_record, sizeof(Record));
+        mfile.read((char *)&main_record, sizeof(Record<const char *>));
         nfile.seekp(0, ios::end);
-        nfile.write((char *)&main_record, sizeof(Record));
+        nfile.write((char *)&main_record, sizeof(Record<const char *>));
         nsize++;
       }
 
@@ -156,11 +157,11 @@ public:
     int isize;
     ifile.read((char *)&isize, sizeof(int));
 
-    vector<Record> new_records;
+    vector<Record<const char *>> new_records;
     for (int i = 0; i < isize; i++)
     {
-      Record record;
-      ifile.read((char *)&record, sizeof(Record));
+      Record<const char *> record;
+      ifile.read((char *)&record, sizeof(Record<const char *>));
       new_records.push_back(record);
     }
 
@@ -172,10 +173,10 @@ public:
     nfile.write((char *)&nsize, sizeof(int));
 
     // Leer registros del main file
-    Record main_record;
+    Record<const char *> main_record;
     int msize;
     mfile.read((char *)&msize, sizeof(int));
-    mfile.read((char *)&main_record, sizeof(Record));
+    mfile.read((char *)&main_record, sizeof(Record<const char *>));
 
     // Iterar por el main file y el insert file hasta terminar el merge
     int ptr = 0;
@@ -185,7 +186,7 @@ public:
         ptr++;
 
       if (main_record.is_removed == true)
-        mfile.read((char *)&main_record, sizeof(Record));
+        mfile.read((char *)&main_record, sizeof(Record<const char *>));
 
       if (new_records[ptr].is_removed == false && main_record.is_removed == false)
       {
@@ -194,7 +195,7 @@ public:
           if (new_records[ptr].key < main_record.key)
           {
             nfile.seekp(0, ios::end);
-            nfile.write((char *)&new_records[ptr], sizeof(Record));
+            nfile.write((char *)&new_records[ptr], sizeof(Record<const char *>));
             nsize++;
 
             // avanzamos el ptr del los new_records
@@ -204,22 +205,22 @@ public:
           else if (new_records[ptr].key > main_record.key)
           {
             nfile.seekp(0, ios::end);
-            nfile.write((char *)&main_record, sizeof(Record));
+            nfile.write((char *)&main_record, sizeof(Record<const char *>));
             nsize++;
 
             // Avanzamos la posicion del main file leyendo el siguiente record
-            mfile.read((char *)&main_record, sizeof(Record));
+            mfile.read((char *)&main_record, sizeof(Record<const char *>));
           }
 
           // No se permiten keys repetidas, entonces solo guardamos la del main file
           else if (new_records[ptr].key == main_record.key)
           {
             nfile.seekp(0, ios::end);
-            nfile.write((char *)&main_record, sizeof(Record));
+            nfile.write((char *)&main_record, sizeof(Record<const char *>));
             nsize++;
 
             // Avanzamos ambos ptrs
-            mfile.read((char *)&main_record, sizeof(Record));
+            mfile.read((char *)&main_record, sizeof(Record<const char *>));
             ptr++;
           }
         }
@@ -227,11 +228,11 @@ public:
         // En caso se acaben los new_records, se escriben los records restantes del main file
         else
         {
-          nfile.write((char *)&main_record, sizeof(Record));
+          nfile.write((char *)&main_record, sizeof(Record<const char *>));
           nsize++;
 
           // Avanzamos la posicion del main file leyendo el siguiente record
-          mfile.read((char *)&main_record, sizeof(Record));
+          mfile.read((char *)&main_record, sizeof(Record<const char *>));
         }
       }
     }
@@ -251,7 +252,7 @@ public:
     rename((char *)&new_file, (char *)&main_file);
   }
 
-  int pos_search(int key)
+  int pos_search(const char *key)
   {
     ifstream file(main_file, ios::binary);
     if (!file)
@@ -265,23 +266,25 @@ public:
     file.read((char *)&high, sizeof(int));
     high = high - 1;
 
-    Record record;
+    Record<const char *> record;
 
     while (low <= high)
     {
-      mid = (high + low) / 2;
-      pos = mid * sizeof(Record) + sizeof(int);
+      mid = low + (high - low) / 2;
+      pos = mid * sizeof(Record<const char *>) + sizeof(int);
 
       file.seekg(pos, ios::beg);
-      file.read((char *)&record, sizeof(Record));
+      file.read((char *)&record, sizeof(Record<const char *>));
 
-      if (record.key == key)
+      int compare = strcmp(record.key, key);
+
+      if (compare == 0)
       {
         file.close();
         return pos;
       }
 
-      else if (record.key < key)
+      else if (compare < 0)
         low = mid + 1;
 
       else
@@ -292,7 +295,7 @@ public:
     return -1;
   }
 
-  Record search(int key)
+  Record<const char *> search(const char *key)
   {
     // Primero se busca en el archivo principal
     int pos = pos_search(key);
@@ -301,7 +304,7 @@ public:
     // Esta en el archivo principal
     if (pos != -1)
     {
-      Record record = read_record(pos);
+      Record<const char *> record = read_record(pos);
       return record;
     }
 
@@ -315,16 +318,16 @@ public:
       if (!file)
       {
         cout << "No se encontro insert file" << endl;
-        return Record();
+        return Record<const char *>();
       }
 
       // Buscar elementos en el archivo de inserts
-      Record record;
+      Record<const char *> record;
       int isize;
       file.read((char *)&isize, sizeof(int));
       for (int i = 0; i < isize; i++)
       {
-        file.read((char *)&record, sizeof(Record));
+        file.read((char *)&record, sizeof(Record<const char *>));
         if (record.key == key)
         {
           file.close();
@@ -334,10 +337,10 @@ public:
       file.close();
     }
     cout << "No se encontro elemento en ningun archivo" << endl;
-    return Record();
+    return Record<const char *>();
   }
 
-  bool remove_record(int key)
+  bool remove_record(const char *key)
   {
     // Buscar elemento en el archivo de main
     int pos = pos_search(key);
@@ -345,7 +348,7 @@ public:
     if (pos != -1)
     {
       fstream file(main_file, ios::in | ios::out | ios::binary);
-      Record record = read_record(pos);
+      Record<const char *> record = read_record(pos);
       record.is_removed = true;
       write_record(record, pos);
       file.close();
@@ -363,17 +366,17 @@ public:
         return false;
       }
 
-      Record record;
+      Record<const char *> record;
       int isize;
       file.read((char *)&isize, sizeof(int));
       for (int i = 0; i < isize; i++)
       {
-        file.read((char *)&record, sizeof(Record));
+        file.read((char *)&record, sizeof(Record<const char *>));
         if (record.key == key)
         {
           record.is_removed = true;
-          file.seekp(i * sizeof(Record) + sizeof(int), ios::beg);
-          file.write((char *)&record, sizeof(Record));
+          file.seekp(i * sizeof(Record<const char *>) + sizeof(int), ios::beg);
+          file.write((char *)&record, sizeof(Record<const char *>));
           file.close();
           return true;
         }
@@ -383,9 +386,9 @@ public:
     return false;
   }
 
-  vector<Record> range_search(int low_key, int high_key)
+  vector<Record<const char *>> range_search(const char *low_key, const char *high_key)
   {
-    vector<Record> result;
+    vector<Record<const char *>> result;
     ifstream mfile(main_file, ios::binary);
     ifstream ifile(insert_file, ios::binary);
 
@@ -399,15 +402,15 @@ public:
       int high = msize - 1;
       int mid;
       int pos;
-      Record record;
+      Record<const char *> record;
       bool found = false;
 
       while (low <= high)
       {
         mid = (low + high) / 2;
-        pos = mid * sizeof(Record) + sizeof(int);
+        pos = mid * sizeof(Record<const char *>) + sizeof(int);
         mfile.seekg(pos, ios::beg);
-        mfile.read((char *)&record, sizeof(Record));
+        mfile.read((char *)&record, sizeof(Record<const char *>));
 
         if (record.key >= low_key)
         {
@@ -423,11 +426,11 @@ public:
       // Si encontramos al menos un elemento >= low_key, low quedará en la posición deseada
       if (found)
       {
-        pos = low * sizeof(Record) + sizeof(int);
+        pos = low * sizeof(Record<const char *>) + sizeof(int);
         mfile.seekg(pos, ios::beg);
 
         // Leer registros secuencialmente desde `low` hasta `high_key`
-        while (mfile.read((char *)&record, sizeof(Record)) && record.key <= high_key)
+        while (mfile.read((char *)&record, sizeof(Record<const char *>)) && record.key <= high_key)
         {
           if (!record.is_removed) // Si no está eliminado, lo añadimos al resultado
           {
@@ -444,11 +447,11 @@ public:
     {
       int isize;
       ifile.read((char *)&isize, sizeof(int));
-      Record record;
+      Record<const char *> record;
 
       for (int i = 0; i < isize; ++i)
       {
-        ifile.read((char *)&record, sizeof(Record));
+        ifile.read((char *)&record, sizeof(Record<const char *>));
         if (!record.is_removed && record.key >= low_key && record.key <= high_key)
         {
           result.push_back(record);
@@ -462,34 +465,34 @@ public:
     return result;
   }
 
-  Record read_record(int pos)
+  Record<const char *> read_record(int pos)
   {
-    Record record;
+    Record<const char *> record;
     ifstream file(main_file, ios::binary);
     file.seekg(pos, ios::beg);
-    file.read((char *)&record, sizeof(Record));
+    file.read((char *)&record, sizeof(Record<const char *>));
     file.close();
     return record;
   }
 
-  void write_record(Record record, int pos)
+  void write_record(Record<const char *> record, int pos)
   {
     fstream file(main_file, ios::in | ios::out | ios::binary);
     file.seekp(pos, ios::beg);
-    file.write((char *)&record, sizeof(Record));
+    file.write((char *)&record, sizeof(Record<const char *>));
     file.close();
   }
 
   void print_mfile()
   {
     ifstream file(main_file, ios::binary);
-    Record record;
+    Record<const char *> record;
     int size;
     file.read((char *)&size, sizeof(int));
-    while (file.read((char *)&record, sizeof(Record)))
+    while (file.read((char *)&record, sizeof(Record<const char *>)))
     {
       if (record.is_removed == false)
-        record.show();
+        cout << record.show();
     }
 
     cout << "size: " << size << endl;
@@ -499,13 +502,13 @@ public:
   void print_ifile()
   {
     ifstream file(insert_file, ios::binary);
-    Record record;
+    Record<const char *> record;
     int size;
     file.read((char *)&size, sizeof(int));
-    while (file.read((char *)&record, sizeof(Record)))
+    while (file.read((char *)&record, sizeof(Record<const char *>)))
     {
       if (record.is_removed == false)
-        record.show();
+        cout << record.show();
     }
 
     cout << "size: " << size << endl;
@@ -516,7 +519,7 @@ public:
 void build_test()
 {
   Sequential file("main.bin");
-  file.buildCSV("test.csv");
+  file.buildCSV("YTStats.csv");
 }
 
 void show_all_test()
@@ -534,56 +537,43 @@ void show_insertfile_test()
 void search_test()
 {
   Sequential file("main.bin");
-  file.buildCSV("test.csv");
-  Record record = file.search(700);
-  record.show();
+  file.buildCSV("YTStats.csv");
+  Record record = file.search("__4c1JCHvaQ");
+  cout << record.show() << endl;
 }
 
-void search_insertfile_test()
-{
-  Sequential file("main.bin");
-  file.buildCSV("test.csv");
-  file.insert(950);
-  Record record = file.search(950);
-  record.show();
-}
+// void search_insertfile_test()
+// {
+//   Sequential file("main.bin");
+//   file.buildCSV("test.csv");
+//   file.insert();
+//   Record record = file.search("12345");
+//   record.show();
+// }
 
 void rangesearch_test()
 {
   Sequential file("main.bin");
   file.buildCSV("test.csv");
-  vector<Record> records = file.range_search(400, 1000);
+  vector<Record<const char *>> records = file.range_search("kvLeLgb5Wyo", "kVYTGWqffzk");
   for (auto record : records)
     record.show();
 }
 
-void rebuild_test()
-{
-  Sequential file("main.bin");
-  file.buildCSV("test.csv");
-  file.insert(150);
-  file.insert(350);
-  file.insert(950);
-  file.print_mfile();
-}
+// void rebuild_test()
+// {
+//   Sequential file("main.bin");
+//   file.buildCSV("test.csv");
+//   file.insert(150);
+//   file.insert(350);
+//   file.insert(950);
+//   file.print_mfile();
+// }
 
-void remove_test()
-{
-  Sequential file("main.bin");
-  file.buildCSV("test.csv");
-  file.remove_record(900);
-  file.print_mfile();
-}
-
-int main()
-{
-  build_test();
-  show_all_test();
-  show_insertfile_test();
-  search_test();
-  search_insertfile_test();
-  rangesearch_test();
-  rebuild_test();
-  remove_test();
-  return 0;
-}
+// void remove_test()
+// {
+//   Sequential file("main.bin");
+//   file.buildCSV("test.csv");
+//   file.remove_record(900);
+//   file.print_mfile();
+// }
