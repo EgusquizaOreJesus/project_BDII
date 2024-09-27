@@ -62,7 +62,6 @@ Token* Scanner::nextToken() {
     do {
         c = nextChar();
     } while (c == ' ' || c == '\t' || c == '\n');
-
     if (c == '\0') return new Token(Token::END);
 
     startLexema();
@@ -77,6 +76,7 @@ Token* Scanner::nextToken() {
         if (type != Token::ID) {
             return new Token(type, lexema);
         } else if (isNumber(lexema)) {
+            // AVANZA HASTA QUE NO SEA UN DIGITO
             return new Token(Token::NUM, lexema);
         } else {
             return new Token(Token::ID, lexema);

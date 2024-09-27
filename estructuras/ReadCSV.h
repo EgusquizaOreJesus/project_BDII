@@ -12,19 +12,10 @@ using namespace std;
 template<typename TK>
 struct BaseRecord {
 public:
-    TK key;
-
+    char key[100];
     // campos comunes
-    // Campos comunes al AVL
-    int left = -1;
-    int right = -1;
-    int height = 0;
-    int next_del = -2;
-    bool is_removed;
 
-    void showAVL(){
-        cout << key << " | " << left << " | " << right << " | " << height << endl;
-    }
+
 };
 
 template<typename TK>
@@ -39,7 +30,11 @@ struct Record<const char*> : public BaseRecord<const char*> {
     long long likes;
     long long dislikes;
     long long comment_count;
-
+    // Campos comunes al AVL
+    int left = -1;
+    int right = -1;
+    int height = 0;
+    int next_del = -2;
     string show() {
         stringstream ss;
         ss << "key: " << key << '\n';
@@ -53,6 +48,10 @@ struct Record<const char*> : public BaseRecord<const char*> {
         return ss.str();
     }
 
+
+    void showAVL(){
+        cout << key << " | " << left << " | " << right << " | " << height << endl;
+    }
     friend ostream& operator<<(ostream& os, const Record<const char*>& record) {
         os << record.key;
         return os;
@@ -82,7 +81,7 @@ struct Record<const char*> : public BaseRecord<const char*> {
     }
 };
 template<>
-struct Record<int>: public BaseRecord<const char*> {
+struct Record<int>: public BaseRecord<int> {
     char key[100];
     char App_name[100];
     char category[50];
@@ -95,7 +94,11 @@ struct Record<int>: public BaseRecord<const char*> {
     double price;
     char currency[10];
     char size[50];
-
+    // Campos comunes al AVL
+    int left = -1;
+    int right = -1;
+    int height = 0;
+    int next_del = -2;
     string show() {
         stringstream ss;
         ss << "App Name: " << App_name << '\n';
@@ -113,7 +116,9 @@ struct Record<int>: public BaseRecord<const char*> {
         ss << '\n';
         return ss.str();
     }
-
+    void showAVL(){
+        cout << key << " | " << left << " | " << right << " | " << height << endl;
+    }
     bool operator==(const Record<const char*>& other) const {
         return strcmp(key, other.key) == 0;
     }
@@ -153,8 +158,13 @@ inline void safeCopy(char* dest, const std::string& src, size_t size) {
     dest[size - 1] = '\0'; // Asegurar que termine en null
 }
 
+// FUNCION GENERICA
+template<typename TK>
+vector<Record<TK>> readCSV(const string& filename);
+
 // Función para leer el archivo CSV de YouTube
-std::vector<Record<const char*>> readCSV_youtube(const std::string& filename) {
+template<>
+std::vector<Record<const char*>> readCSV(const std::string& filename) {
     std::ifstream file(filename);
     std::vector<Record<const char*>> records;
     std::string line;
@@ -198,8 +208,8 @@ std::vector<Record<const char*>> readCSV_youtube(const std::string& filename) {
 
     return records;
 }
-
-std::vector<Record<int>> readCSV_playstore(const std::string& filename) {
+template<>
+std::vector<Record<int>> readCSV(const std::string& filename) {
     std::ifstream file(filename);
     std::vector<Record<int>> records;
     std::string line;
