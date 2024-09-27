@@ -277,7 +277,7 @@ struct VideoRecord {
    - En un B+ Tree, las hojas contienen punteros a los registros, lo que hace que la estructura sea eficiente en términos de almacenamiento y permite realizar búsquedas por rango de manera eficiente. Este comportamiento es útil en aplicaciones donde se requieren consultas por rango de claves.
 
 
-### Hashing Extensible
+### Extendible Hashing
 
 #### Función Insert
 
