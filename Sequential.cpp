@@ -414,6 +414,85 @@ public:
     return false;
   }
 
+  vector<Record> range_search(int low_key, int high_key)
+  {
+    vector<Record> result;
+    ifstream mfile(main_file, ios::binary);
+    ifstream ifile(insert_file, ios::binary);
+
+    // Realizar búsqueda binaria en el archivo principal
+    if (mfile)
+    {
+      int msize;
+      mfile.read((char *)&msize, sizeof(int));
+
+      int low = 0;
+      int high = msize - 1;
+      int mid;
+      int pos;
+      Record record;
+      bool found = false;
+
+      while (low <= high)
+      {
+        mid = (low + high) / 2;
+        pos = mid * sizeof(Record) + sizeof(int);
+        mfile.seekg(pos, ios::beg);
+        mfile.read((char *)&record, sizeof(Record));
+
+        if (record.key >= low_key)
+        {
+          high = mid - 1;
+          found = true;
+        }
+        else
+        {
+          low = mid + 1;
+        }
+      }
+
+      // Si encontramos al menos un elemento >= low_key, low quedará en la posición deseada
+      if (found)
+      {
+        pos = low * sizeof(Record) + sizeof(int);
+        mfile.seekg(pos, ios::beg);
+
+        // Leer registros secuencialmente desde `low` hasta `high_key`
+        while (mfile.read((char *)&record, sizeof(Record)) && record.key <= high_key)
+        {
+          if (!record.is_removed) // Si no está eliminado, lo añadimos al resultado
+          {
+            result.push_back(record);
+          }
+        }
+      }
+
+      mfile.close();
+    }
+
+    // Buscar en el archivo de inserts
+    if (ifile)
+    {
+      int isize;
+      ifile.read((char *)&isize, sizeof(int));
+      Record record;
+
+      for (int i = 0; i < isize; ++i)
+      {
+        ifile.read((char *)&record, sizeof(Record));
+        if (!record.is_removed && record.key >= low_key && record.key <= high_key)
+        {
+          result.push_back(record);
+        }
+      }
+      ifile.close();
+    }
+
+    sort(result.begin(), result.end(), compare_key);
+
+    return result;
+  }
+
   Record read_record(int pos)
   {
     Record record;
@@ -500,6 +579,15 @@ void search_insertfile_test()
   record.show();
 }
 
+void rangesearch_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+  vector<Record> records = file.range_search(400, 1000);
+  for (auto record : records)
+    record.show();
+}
+
 void rebuild_test()
 {
   Sequential file("main.bin");
@@ -524,6 +612,8 @@ int main()
   show_all_test();
   show_insertfile_test();
   search_test();
+  search_insertfile_test();
+  rangesearch_test();
   rebuild_test();
   remove_test();
   return 0;
