@@ -36,8 +36,8 @@ public:
     }
 
     template <typename TK>
-    static std::unique_ptr<FileStructure<TK>> createExtendible(string filename) {
-        return std::make_unique<ExtendibleHashing<TK>>(filename);
+    static std::unique_ptr<FileStructure<TK>> createExtendible(string filename, string directory) {
+        return std::make_unique<ExtendibleHashing<TK>>(filename,directory);
     }
 
     // AGREGAR MAS ESTRUCTURAS
@@ -55,6 +55,7 @@ public:
     const char* getStructure(){
         return fileStructure;
     }
+    Record<TK> readRecord(vector<string> atributes);
     ~Parser() {
     }
 private:
@@ -76,6 +77,39 @@ private:
 };
 
 template<class TK>
+Record<TK> Parser<TK>::readRecord(vector<string> atributes) {
+    return Record<TK>();
+}
+template<>
+Record<int> Parser<int>::readRecord(vector<string> values) {
+    Record<int> record;
+    strncpy(record.key, values[0].c_str(), sizeof(record.key) - 1);
+    strncpy(record.App_name, values[1].c_str(), sizeof(record.App_name) - 1);
+    strncpy(record.category, values[2].c_str(), sizeof(record.category) - 1);
+    record.rating = stof(values[3]);
+    record.rating_count = stof(values[4]);
+    strncpy(record.installs, values[5].c_str(), sizeof(record.installs) - 1);
+    record.minimum_installs = stof(values[6]);
+    record.maximum_installs = stof(values[7]);
+    record.free = values[8] == "true";
+    record.price = stof(values[9]);
+    strncpy(record.currency, values[10].c_str(), sizeof(record.currency) - 1);
+    strncpy(record.size, values[11].c_str(), sizeof(record.size) - 1);
+    return record;
+}
+template<>
+Record<const char*> Parser<const char*>::readRecord(vector<string> values) {
+    Record<const char*> record;
+    strncpy(record.key, values[0].c_str(), sizeof(record.key) - 1);
+    strncpy(record.title, values[1].c_str(), sizeof(record.title) - 1);
+    strncpy(record.channel_title, values[2].c_str(), sizeof(record.channel_title) - 1);
+    record.views = stof(values[3]);
+    record.likes = stof(values[4]);
+    record.dislikes = stof(values[5]);
+    record.comment_count = stof(values[6]);
+    return record;
+}
+template<class TK>
 Parser<TK>::Parser(Scanner *scanner) {
     this->scanner = scanner;
 //    avlApps = new AVLFile<int>("playstore.dat");
@@ -86,21 +120,22 @@ Parser<TK>::Parser(Scanner *scanner) {
 template<class TK>
 Parser<TK>::Parser(Scanner *scanner, const char *estructura) {
     this->scanner = scanner;
-    if (strcmp(estructura, "avlFileApps") == 0){
-        this->instance = DataStructureFactory::createAVL<TK>("playstore.dat");
-        strcpy(fileStructure, "avlFileApps");
+    if (strcmp(estructura, "avlFilePlaystore") == 0){
+        this->instance = DataStructureFactory::createAVL<TK>("playstore1.dat");
+        strcpy(fileStructure, "avlFilePlaystore");
     }
     else if (strcmp(estructura, "avlFileYoutube") == 0){
-        this->instance = DataStructureFactory::createAVL<TK>("youtube.dat");
+        this->instance = DataStructureFactory::createAVL<TK>("youtube1.dat");
         strcpy(fileStructure, "avlFileYoutube");
     }
-    else if (strcmp(estructura, "extendibleHashYoutube") == 0){
-        this->instance = DataStructureFactory::createExtendible<TK>("youtube.dat");
-        strcpy(fileStructure, "extendibleHashYoutube");
+    else if (strcmp(estructura, "extendibleFileYoutube") == 0){
+        cout << "extendibleFileYoutube" << endl;
+        this->instance = DataStructureFactory::createExtendible<TK>("youtube2.dat","dir1.dat");
+        strcpy(fileStructure, "extendibleFileYoutube");
     }
-    else if (strcmp(estructura, "extendibleHashApps") == 0){
-        this->instance = DataStructureFactory::createExtendible<TK>("playstore.dat");
-        strcpy(fileStructure, "extendibleHashApps");
+    else if (strcmp(estructura, "extendibleFilePlaystore") == 0){
+        this->instance = DataStructureFactory::createExtendible<TK>("playstore2.dat","dir2.dat");
+        strcpy(fileStructure, "extendibleFilePlaystore");
     }
     currentToken = scanner->nextToken();
 }
@@ -170,26 +205,41 @@ void Parser<TK>::parseCreateTable() {
 
     Table table = {tableName, fileName, Token::token_names[indexType->type]};
     tables.push_back(table);
+    vector<Record<TK>> records = readCSV<TK>("../" + fileName);
+    cout << "records size: " << records.size() << endl;
     if (indexType->type == Token::AVL) {
-        if (tableName == "Apps") {
-//            cout << "avl filename: " << avlApps->filename << endl;
-            cout << "create table apps" << endl;
-            vector<Record<TK>> records = readCSV<TK>("../" + fileName);
-            cout << "records size: " << records.size() << endl;
-            for (int i = 0; i < 5; ++i) {
+        if (tableName == "Playstore") {
+            for (int i = 0; i < 100000; ++i) {
                 instance->insert(records[i]);
             }
-            strcpy(fileStructure, "avlFileApps");
-//            avlApps->printAll();
+            strcpy(fileStructure, "avlFilePlaystore");
+            instance->printAll();
         } else if (tableName == "Youtube") {
-            vector<Record<TK>> records = readCSV<TK>("../" + fileName);
-            cout << "records size: " << records.size() << endl;
-            cout << "create table youtube" << endl;
-//            for (int i=0; i < 5; i++){
-//                instance->insert(records[i]);
-//            }
+            for (int i=0; i < records.size(); i++){
+                instance->insert(records[i]);
+            }
             instance->printAll();
             strcpy(fileStructure, "avlFileYoutube");
+        }
+    }
+    else if (indexType->type == Token::EXTENDIBLE){
+        if (tableName == "Playstore"){
+            for (int i = 0; i < 100000; ++i) {
+                instance->insert(records[i]);
+            }
+            // flush disk
+            instance->update_disk();
+            strcpy(fileStructure, "extendibleFilePlaystore");
+        }
+        else if (tableName == "Youtube"){
+            cout << "records size: " << records.size() << endl;
+            cout << records[0].key << endl;
+            for (int i=0; i < records.size(); i++){
+                instance->insert(records[i]);
+            }
+            // flush disk
+            instance->update_disk();
+            strcpy(fileStructure, "extendibleFileYoutube");
         }
     }
 
@@ -198,31 +248,31 @@ void Parser<TK>::parseCreateTable() {
 
 template<class TK>
 void Parser<TK>::parseSelect() {
-    cout << "---- Selecting" << endl;
     expect(Token::SELECT);
     expect(Token::ALL);
     expect(Token::FROM);
     string tableName = expect(Token::ID)->lexema;
-    cout << "---- From " << tableName << endl;
     expect(Token::WHERE);
-    cout << "---- Where" << endl;
     Condition condition = parseCondition();
 
-    if (tableName == "Apps") {
+    if (tableName == "Playstore") {
         if (condition.op == "=") {
+            const char* key = condition.value1.c_str();
+            Record<TK> result = instance->search(key);
 
-//            Record<const char*> result = avlFileApp->find(condition.value1.c_str());
-//            cout << "---- Selecting from " << tableName << " where " << condition.field << " = " << condition.value1 << ": " << result.toString() << endl;
+        }else if (condition.op == "between") {
+            vector<Record<TK>> results;
         }
-    } else if (tableName == "Animes") {
+    } else if (tableName == "Youtube") {
+        cout << "Searching in Youtube" << endl;
         if (condition.op == "=") {
-//            cout << "---- Selecting from " << tableName << " where " << condition.field << " = " << condition.value1 << ": " << result.toString() << endl;
+            const char* key = condition.value1.c_str();
+            cout << "Searching for key: " << key << endl;
+            Record<TK> result = instance->search(key);
+            cout << result.show() << endl;
+
         } else if (condition.op == "between") {
-            vector<Record<int>> results;
-//            avlFileAnime->rangeSearch(stoi(condition.value1), stoi(condition.value2), results);
-            for (Record<int>& rec : results) {
-                rec.show();
-            }
+            vector<Record<TK>> results;
         }
     }
 }
@@ -238,43 +288,13 @@ void Parser<TK>::parseInsert() {
     expect(Token::RPARENT);
 
     if (tableName == "Youtube") {
-        cout << "---- Inserting into " << tableName << " values: ";
-        Record<int> record;
-        strncpy(record.key, values[0].c_str(), sizeof(record.key) - 1);
-        strncpy(record.App_name, values[1].c_str(), sizeof(record.App_name) - 1);
-        strncpy(record.category, values[2].c_str(), sizeof(record.category) - 1);
-        record.rating = stof(values[3]);
-        record.rating_count = stof(values[4]);
-        strncpy(record.installs, values[5].c_str(), sizeof(record.installs) - 1);
-        record.minimum_installs = stof(values[6]);
-        record.maximum_installs = stof(values[7]);
-        record.free = values[8] == "true";
-        record.price = stof(values[9]);
-        strncpy(record.currency, values[10].c_str(), sizeof(record.currency) - 1);
-        strncpy(record.size, values[11].c_str(), sizeof(record.size) - 1);
-//        avlApps->insert(record);
-
-        cout << "---- Inserting into " << tableName << " values: ";
-        for (const string& value : values) {
-            cout << value << " ";
-        }
+        Record<TK> record = readRecord(values);
+        this->instance->insert(record);
         cout << endl;
     } else if (tableName == "Playstore") {
-        Record<const char*> record;
-        strncpy(record.key, values[0].c_str(), sizeof(record.key) - 1);
-        strncpy(record.title, values[1].c_str(), sizeof(record.title) - 1);
-        strncpy(record.channel_title, values[2].c_str(), sizeof(record.channel_title) - 1);
-        record.views = stof(values[3]);
-        record.likes = stof(values[4]);
-        record.dislikes = stof(values[5]);
-        record.comment_count = stof(values[6]);
-//        avlYoutube->insert(record);
+        Record<TK> record = readRecord(values);
+        this->instance->insert(record);
     }
-
-//    vector<Record<int>> sortedData = avlFileAnime->inorder();
-//    for (Record<int>& rec : sortedData) {
-//        rec.show();
-//    }
 }
 
 template<class TK>
@@ -285,23 +305,28 @@ void Parser<TK>::parseDelete() {
     expect(Token::WHERE);
     Condition condition = parseCondition();
 
-    if (tableName == "Apps") {
-//        avlFileApp->remove(condition.value1.c_str());
-        cout << "Deleting from " << tableName;
-    } else if (tableName == "Animes") {
-//        avlFileAnime->remove(stoi(condition.value1));  // Assuming anime_id (integer) is key
-//        cout << "Deleting from " << tableName << " where " << condition.field << " = " << condition.value1;
+    if (tableName == "Youtube") {
+        if (condition.op == "="){
+            const char* key = condition.value1.c_str();
+            instance->remove(key);
+        }
+    } else if (tableName == "Playstore") {
+        if (condition.op == "="){
+            const char* key = condition.value1.c_str();
+            instance->remove(key);
+        }
     }
 
     cout << endl;
 }
 template<class TK>
 Condition Parser<TK>::parseCondition() {
-    cout << "---- Parsing condition" << endl;
-    if (expect(Token::ID) == nullptr) {
+    auto token = expect(Token::ID);
+    if (token == nullptr){
+        cout << "---- Error parsing condition" << endl;
         return {};
     }
-    string field = expect(Token::ID)->lexema;
+    string field = token->lexema;
     Token* opToken = currentToken;
 
     if (opToken->type == Token::EQUAL) {
@@ -323,10 +348,22 @@ Condition Parser<TK>::parseCondition() {
 template<class TK>
 vector<string> Parser<TK>::parseValues() {
     vector<string> values;
-    values.push_back(expect(Token::VALUE)->lexema);
+    auto value = expect(Token::VALUE)->lexema;
+    values.push_back(value);
     while (currentToken->type == Token::COLON) {
         expect(Token::COLON);
-        values.push_back(expect(Token::VALUE)->lexema);
+        if (currentToken->type == Token::VALUE){
+            values.push_back(expect(Token::VALUE)->lexema);
+        }else if (currentToken->type == Token::NUM){
+            values.push_back(expect(Token::NUM)->lexema);
+        }
+        else if (currentToken->type == Token::FLOAT){
+            values.push_back(expect(Token::FLOAT)->lexema);
+        }else if (currentToken->type == Token::TRUE){
+            values.push_back(expect(Token::TRUE)->lexema);
+        }else if (currentToken->type == Token::FALSE){
+            values.push_back(expect(Token::FALSE)->lexema);
+        }
     }
     return values;
 }

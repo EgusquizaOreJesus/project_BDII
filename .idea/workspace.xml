@@ -21,7 +21,15 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7b842f6-7fe4-4070-9683-d40c58941c4f" name="Changes" comment="" />
+    <list default="true" id="f7b842f6-7fe4-4070-9683-d40c58941c4f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/estructuras/ExtendibleHashing.h" beforeDir="false" afterPath="$PROJECT_DIR$/estructuras/ExtendibleHashing.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/estructuras/FileStructureBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/estructuras/FileStructureBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/estructuras/avlFile.h" beforeDir="false" afterPath="$PROJECT_DIR$/estructuras/avlFile.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mainPrueb.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/mainPrueb.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parserSQL.h" beforeDir="false" afterPath="$PROJECT_DIR$/parserSQL.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tokenS.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/tokenS.cpp" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -52,7 +60,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "parser2",
-    "last_opened_file_path": "C:/Users/Jesus Egusquiza/Desktop/ciclo5/compiladores/LAB/LAB5",
+    "last_opened_file_path": "C:/Users/Jesus Egusquiza/Desktop/CICLO6/BD II/Projecto1",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -94,7 +102,7 @@
       <workItem from="1727401547112" duration="8765000" />
       <workItem from="1727412840940" duration="3025000" />
       <workItem from="1727416871060" duration="4741000" />
-      <workItem from="1727443393563" duration="9617000" />
+      <workItem from="1727443393563" duration="20794000" />
     </task>
     <servers />
   </component>

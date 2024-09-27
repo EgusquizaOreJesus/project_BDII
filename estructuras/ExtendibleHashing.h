@@ -119,12 +119,12 @@ public:
     ExtendibleHashing(const string &fileName = "data.dat", const string &directoryName = "directory.dat");
 
     void insert(Record<TK> key);
-    Record<TK> search(TK key);
-    bool remove(TK key);
+    Record<TK> search(TK key) override;
+    bool remove(TK key) override;
     void split(Bucket<TK> &bucket, int index);
     void display_directory();
     void display_buckets();
-    void update_disk();
+    void update_disk() override;
     void printAll() override;
     void print_bucket(Bucket<TK> &bucket);
     void insert_encajado(Bucket<TK> &bucket, Record<TK> key, int pos);
@@ -300,6 +300,7 @@ void ExtendibleHashing<TK>::split(Bucket<TK> &bucket, int index) {
 template<typename TK>
 Record<TK> ExtendibleHashing<TK>::search(TK key){
     cout << "Buscando" << endl;
+    cout << "key: " << key << endl;
     int index = hash_binary(key);
     fstream file(this->fileName, ios::binary | ios::in | ios::out);
     int pos = directory[index];
@@ -537,7 +538,6 @@ void ExtendibleHashing<TK>::insert(Record<TK> key) {
     Bucket<TK> bucket = buffer.get(pos);
     if (bucket.size < factor+1 && bucket.localDepth == globalDepth){
         buffer.flush_to_disk();
-        cout << "Insertando en bucket" << endl;
         insert_encajado(bucket, key, pos);
     }
     else{
@@ -610,11 +610,9 @@ ExtendibleHashing<TK>::ExtendibleHashing( const string &fileName, const string &
         int head1 = -1;
         int head2 = -1;
         int pos1 = file_data.tellp();
-        cout << "Pos1: " << pos1 << endl;
         file_data.write((char *) &head1, sizeof(head1));
         file_data.write((char *) &bucket1, sizeof(bucket1));
         int pos2 = file_data.tellp();
-        cout << "Pos2: " << pos2 << endl;
         file_data.write((char *) &head2, sizeof(head2));
         file_data.write((char *) &bucket2, sizeof(bucket2));
         file_data.close();
@@ -648,6 +646,7 @@ ExtendibleHashing<TK>::ExtendibleHashing( const string &fileName, const string &
         file_default_data.read((char *) &size_directory, sizeof(size_directory));
         this->sizeDirectory = size_directory;
         int max_pos = 0;
+        cout << "size_directory: " << size_directory << endl;
         for (int i = 0; i < size_directory; ++i) {
             int size_repeat;
             int pos;

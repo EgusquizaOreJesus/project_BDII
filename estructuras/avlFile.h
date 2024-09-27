@@ -34,15 +34,18 @@ private:
 public:
     // constructor por defecto
     AVLFile() = default;
+    void update_disk() override {
+
+    }
 
     string filename;
     AVLFile(string filename);
     void insert(Record<TK> record) override;
     void printAll() override;
-    Record<TK> find(TK key);
+    Record<TK> search(TK key) override;
     void inorder();
     void bfs();
-    bool remove(TK key);
+    bool remove(TK key) override;
     ~AVLFile() = default;
 
 };
@@ -497,7 +500,7 @@ void AVLFile<TK>::printAll() {
 }
 
 template<typename TK>
-Record<TK> AVLFile<TK>::find(TK key) {
+Record<TK> AVLFile<TK>::search(TK key){
     fstream file(filename, ios::in | ios::out | ios::binary);
     Record<TK> a;
     long pos = pos_root;
