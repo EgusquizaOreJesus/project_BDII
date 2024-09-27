@@ -29,11 +29,15 @@ template<class TK>
 class Parser {
 public:
 
-    Parser(Scanner* scanner, AVLFile<const char*>* avlFileApp);
-    Parser(Scanner* scanner, AVLFile<int>* avlFileApp);
-
+    Parser(Scanner* scanner, const char* estructura);
+    Parser(Scanner* scanner);
     void parse();
+    char fileStructure[20];
 
+
+    const char* getStructure(){
+        return fileStructure;
+    }
 private:
     Scanner* scanner;
     Token* currentToken;
@@ -53,20 +57,25 @@ private:
 };
 
 template<class TK>
-Parser<TK>::Parser(Scanner* scanner, AVLFile<const char*>* avlFileApp) {
+Parser<TK>::Parser(Scanner *scanner) {
     this->scanner = scanner;
-    this->avlYoutube = avlFileApp;
-    this->avlApps = nullptr;
+    avlApps = nullptr;
+    avlYoutube = nullptr;
     currentToken = scanner->nextToken();
 }
 
 template<class TK>
-Parser<TK>::Parser(Scanner *scanner, AVLFile<int> *avlFileApp) {
+Parser<TK>::Parser(Scanner *scanner, const char *estructura) {
     this->scanner = scanner;
-    this->avlApps = avlFileApp;
-    this->avlYoutube = nullptr;
+    if (strcmp(estructura, "avlFileApps") == 0){
+        avlApps = new AVLFile<int>("playstore.dat");
+        avlYoutube = nullptr;
+    }
+    else if (strcmp(estructura, "avlFileYoutube") == 0){
+        avlYoutube = new AVLFile<const char*>("youtube_data.bin");
+        avlApps = nullptr;
+    }
     currentToken = scanner->nextToken();
-
 }
 
 template<class TK>
@@ -126,26 +135,28 @@ void Parser<TK>::parseCreateTable() {
     string fileName = expect(Token::VALUE)->lexema;
     expect(Token::USING);
     expect(Token::INDEX);
-
     Token* indexType = expectOneOf({Token::AVL, Token::ISAM, Token::EXTENDIBLE});
     expect(Token::LPARENT);
     string indexField = expect(Token::VALUE)->lexema;
     expect(Token::RPARENT);
 
     Table table = {tableName, fileName, Token::token_names[indexType->type]};
-    cout << "file name: " << fileName << endl;
-
     tables.push_back(table);
     if (indexType->type == Token::AVL) {
         if (tableName == "Apps") {
-            cout << "create table apps" << endl;
-            vector<Record<int>> records = readCSV_playstore("../" + fileName);
-            cout << "records size: " << records.size() << endl;
-//            avlFileApp->loadData(fileName);  // Load data into the app AVL tree
+//            cout << "create table apps" << endl;
+//            vector<Record<int>> records = readCSV_playstore("../" + fileName);
+//            cout << "records size: " << records.size() << endl;
+//            for (int i = 0; i < 5; ++i) {
+//                avlApps->insert(records[i]);
+//            }
+            strcpy(fileStructure, "avlFileApps");
+            avlApps->printAll();
         } else if (tableName == "Youtube") {
             vector<Record<const char*>> records = readCSV_youtube("../" + fileName);
+            cout << "records size: " << records.size() << endl;
             cout << "create table youtube" << endl;
-//            avlFileAnime->loadData(fileName);  // Load data into the anime AVL tree
+            strcpy(fileStructure, "avlFileYoutube");
         }
     }
 
