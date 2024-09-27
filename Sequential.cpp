@@ -140,8 +140,8 @@ public:
   void rebuild()
   {
     string new_file = "new.bin";
-    ifstream ifile(insert_file, ios::binary);
     ifstream mfile(main_file, ios::binary);
+    ifstream ifile(insert_file, ios::binary);
 
     ifstream check(new_file, ios::binary);
     if (!check)
@@ -151,6 +151,37 @@ public:
     }
 
     fstream nfile(new_file, ios::in | ios::out | ios::binary);
+
+    // Solo existe el archivo main y no hay archivo de inserts.
+    if (!ifile)
+    {
+
+      int nsize = 0;
+      nfile.write((char *)&nsize, sizeof(int));
+
+      Record main_record;
+
+      int msize;
+      mfile.read((char *)&msize, sizeof(int));
+
+      for (int i = 0; i < msize; i++)
+      {
+        mfile.read((char *)&main_record, sizeof(Record));
+        nfile.seekp(0, ios::end);
+        nfile.write((char *)&main_record, sizeof(Record));
+        nsize++;
+      }
+
+      nfile.seekp(0, ios::beg);
+      nfile.write((char *)&nsize, sizeof(int));
+
+      mfile.close();
+      nfile.close();
+
+      remove((char *)&main_file);
+      rename((char *)&new_file, (char *)&main_file);
+      return;
+    }
 
     // Traer registros del archivo de los nuevos inserts a RAM
     int isize;
@@ -181,49 +212,58 @@ public:
     int ptr = 0;
     while (!mfile.eof())
     {
-      if (ptr < isize)
-      {
-        if (new_records[ptr].key < main_record.key)
-        {
-          nfile.seekp(0, ios::end);
-          nfile.write((char *)&new_records[ptr], sizeof(Record));
-          nsize++;
+      if (new_records[ptr].is_removed == true)
+        ptr++;
 
-          // avanzamos el ptr del los new_records
-          ptr++;
+      if (main_record.is_removed == true)
+        mfile.read((char *)&main_record, sizeof(Record));
+
+      if (new_records[ptr].is_removed == false && main_record.is_removed == false)
+      {
+        if (ptr < isize)
+        {
+          if (new_records[ptr].key < main_record.key)
+          {
+            nfile.seekp(0, ios::end);
+            nfile.write((char *)&new_records[ptr], sizeof(Record));
+            nsize++;
+
+            // avanzamos el ptr del los new_records
+            ptr++;
+          }
+
+          else if (new_records[ptr].key > main_record.key)
+          {
+            nfile.seekp(0, ios::end);
+            nfile.write((char *)&main_record, sizeof(Record));
+            nsize++;
+
+            // Avanzamos la posicion del main file leyendo el siguiente record
+            mfile.read((char *)&main_record, sizeof(Record));
+          }
+
+          // No se permiten keys repetidas, entonces solo guardamos la del main file
+          else if (new_records[ptr].key == main_record.key)
+          {
+            nfile.seekp(0, ios::end);
+            nfile.write((char *)&main_record, sizeof(Record));
+            nsize++;
+
+            // Avanzamos ambos ptrs
+            mfile.read((char *)&main_record, sizeof(Record));
+            ptr++;
+          }
         }
 
-        else if (new_records[ptr].key > main_record.key)
+        // En caso se acaben los new_records, se escriben los records restantes del main file
+        else
         {
-          nfile.seekp(0, ios::end);
           nfile.write((char *)&main_record, sizeof(Record));
           nsize++;
 
           // Avanzamos la posicion del main file leyendo el siguiente record
           mfile.read((char *)&main_record, sizeof(Record));
         }
-
-        // No se permiten keys repetidas, entonces solo guardamos la del main file
-        else if (new_records[ptr].key == main_record.key)
-        {
-          nfile.seekp(0, ios::end);
-          nfile.write((char *)&main_record, sizeof(Record));
-          nsize++;
-
-          // Avanzamos ambos ptrs
-          mfile.read((char *)&main_record, sizeof(Record));
-          ptr++;
-        }
-      }
-
-      // En caso se acaben los new_records, se escriben los records restantes del main file
-      else
-      {
-        nfile.write((char *)&main_record, sizeof(Record));
-        nsize++;
-
-        // Avanzamos la posicion del main file leyendo el siguiente record
-        mfile.read((char *)&main_record, sizeof(Record));
       }
     }
 
@@ -242,9 +282,8 @@ public:
     rename((char *)&new_file, (char *)&main_file);
   }
 
-  int search(int key)
+  int pos_search(int key)
   {
-    // Primero se busca en el archivo principal
     ifstream file(main_file, ios::binary);
     if (!file)
       throw runtime_error("Error en search");
@@ -280,25 +319,99 @@ public:
         high = mid - 1;
     }
 
-    cout << "Record not found" << endl;
     file.close();
     return -1;
   }
 
+  Record search(int key)
+  {
+    // Primero se busca en el archivo principal
+    int pos = pos_search(key);
+
+    // Si la pos encontrada es diferente a -1
+    // Esta en el archivo principal
+    if (pos != -1)
+    {
+      Record record = read_record(pos);
+      return record;
+    }
+
+    // Si no esta en el archivo principal,
+    // Buscar en el archivo de los nuevos inserts
+    else
+    {
+      ifstream file(insert_file, ios::binary);
+
+      // Si el archivo no existe, no se encontro elemento buscado
+      if (!file)
+      {
+        cout << "No se encontro insert file" << endl;
+        return Record();
+      }
+
+      // Buscar elementos en el archivo de inserts
+      Record record;
+      int isize;
+      file.read((char *)&isize, sizeof(int));
+      for (int i = 0; i < isize; i++)
+      {
+        file.read((char *)&record, sizeof(Record));
+        if (record.key == key)
+        {
+          file.close();
+          return record;
+        }
+      }
+      file.close();
+    }
+    cout << "No se encontro elemento en ningun archivo" << endl;
+    return Record();
+  }
+
   bool remove_record(int key)
   {
-    int pos = search(key);
-    if (pos == -1)
-      return false;
-    else
+    // Buscar elemento en el archivo de main
+    int pos = pos_search(key);
+
+    if (pos != -1)
     {
       fstream file(main_file, ios::in | ios::out | ios::binary);
       Record record = read_record(pos);
       record.is_removed = true;
       write_record(record, pos);
       file.close();
+      rebuild();
       return true;
     }
+
+    // Buscar elemento en el archivo de inserts
+    else
+    {
+      fstream file(insert_file, ios::in | ios::out | ios::binary);
+      if (!file)
+      {
+        cout << "No se encontro insert file" << endl;
+        return false;
+      }
+
+      Record record;
+      int isize;
+      file.read((char *)&isize, sizeof(int));
+      for (int i = 0; i < isize; i++)
+      {
+        file.read((char *)&record, sizeof(Record));
+        if (record.key == key)
+        {
+          record.is_removed = true;
+          file.seekp(i * sizeof(Record) + sizeof(int), ios::beg);
+          file.write((char *)&record, sizeof(Record));
+          file.close();
+          return true;
+        }
+      }
+      file.close();
+    }
+    return false;
   }
 
   Record read_record(int pos)
@@ -319,7 +432,7 @@ public:
     file.close();
   }
 
-  void print_all()
+  void print_mfile()
   {
     ifstream file(main_file, ios::binary);
     Record record;
@@ -328,7 +441,23 @@ public:
     while (file.read((char *)&record, sizeof(Record)))
     {
       if (record.is_removed == false)
-      record.show();
+        record.show();
+    }
+
+    cout << "size: " << size << endl;
+    file.close();
+  }
+
+  void print_ifile()
+  {
+    ifstream file(insert_file, ios::binary);
+    Record record;
+    int size;
+    file.read((char *)&size, sizeof(int));
+    while (file.read((char *)&record, sizeof(Record)))
+    {
+      if (record.is_removed == false)
+        record.show();
     }
 
     cout << "size: " << size << endl;
@@ -345,19 +474,29 @@ void build_test()
 void show_all_test()
 {
   Sequential file("main.bin");
-  file.buildCSV("test.csv");
-  file.print_all();
+  file.print_mfile();
+}
+
+void show_insertfile_test()
+{
+  Sequential file("insert.bin");
+  file.print_ifile();
 }
 
 void search_test()
 {
   Sequential file("main.bin");
   file.buildCSV("test.csv");
+  Record record = file.search(700);
+  record.show();
+}
 
-  Record record;
-  int pos = file.search(700); // Search retorna una posicion
-
-  record = file.read_record(pos);
+void search_insertfile_test()
+{
+  Sequential file("main.bin");
+  file.buildCSV("test.csv");
+  file.insert(950);
+  Record record = file.search(950);
   record.show();
 }
 
@@ -366,9 +505,9 @@ void rebuild_test()
   Sequential file("main.bin");
   file.buildCSV("test.csv");
   file.insert(150);
+  file.insert(350);
   file.insert(950);
-  file.insert(550);
-  file.print_all();
+  file.print_mfile();
 }
 
 void remove_test()
@@ -376,15 +515,16 @@ void remove_test()
   Sequential file("main.bin");
   file.buildCSV("test.csv");
   file.remove_record(900);
-  file.print_all();
+  file.print_mfile();
 }
 
 int main()
 {
-  // build_test();
-  // show_all_test();
-  // search_test();
-  // rebuild_test();
+  build_test();
+  show_all_test();
+  show_insertfile_test();
+  search_test();
+  rebuild_test();
   remove_test();
   return 0;
 }
