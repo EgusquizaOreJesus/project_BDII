@@ -144,6 +144,7 @@ void Parser<TK>::parseCreateTable() {
     tables.push_back(table);
     if (indexType->type == Token::AVL) {
         if (tableName == "Apps") {
+            cout << "avl filename: " << avlApps->filename << endl;
 //            cout << "create table apps" << endl;
 //            vector<Record<int>> records = readCSV_playstore("../" + fileName);
 //            cout << "records size: " << records.size() << endl;
