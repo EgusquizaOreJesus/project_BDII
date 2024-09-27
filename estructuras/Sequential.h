@@ -528,7 +528,7 @@ template <typename TK>
 void buildYT_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("YTStats.csv");
+  file.buildCSV("data_youtube.csv");
 }
 
 template <typename TK>
@@ -542,7 +542,7 @@ template <typename TK>
 void searchYT_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("YTStats.csv");
+  file.buildCSV("data_youtube.csv");
   Record record = file.search("__4c1JCHvaQ");
   cout << record.show() << endl;
 }
@@ -551,7 +551,7 @@ template <typename TK>
 void rangeYT_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("YTStats.csv");
+  file.buildCSV("data_youtube.csv");
 
   vector<Record<const char *>> records = file.range_search("__4c1JCHvaQ", "_a7bgLyeaxY");
   for (auto record : records)
@@ -562,7 +562,7 @@ template <typename TK>
 void removeYT_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("YTStats.csv");
+  file.buildCSV("data_youtube.csv");
   file.remove_record("zzVFyVNgtsc");
   file.print_mfile();
 }
@@ -572,7 +572,7 @@ template <typename TK>
 void buildPlay_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("Playstore.csv");
+  file.buildCSV("data_playstore.csv");
 }
 
 template <typename TK>
@@ -586,7 +586,7 @@ template <typename TK>
 void searchPlay_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("Playstore.csv");
+  file.buildCSV("data_playstore.csv");
   Record record = file.search("Radio Louvor");
   cout << record.show() << endl;
 }
@@ -595,7 +595,7 @@ template <typename TK>
 void rangePlay_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("Playstore.csv");
+  file.buildCSV("data_playstore.csv");
 
   vector<Record<const char *>> records = file.range_search("Radio Louvor", "Sticky Ball");
   for (auto record : records)
@@ -606,7 +606,7 @@ template <typename TK>
 void removePlay_test()
 {
   Sequential<TK> file("main.bin");
-  file.buildCSV("Playstore.csv");
+  file.buildCSV("data_playstore.csv");
   file.remove_record("Sticky Ball");
   file.print_mfile();
 }
