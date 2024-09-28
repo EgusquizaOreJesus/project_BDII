@@ -6,11 +6,14 @@ import re
 app = Flask(__name__)
 
 
-records1 = read_csv("playstore_mini.csv")
 records = []
 current_table = "playstore"
 num_records = len(records)
 structure = ""
+valid_structures = {
+    "Playstore":None,
+    "Youtube":None
+}
 last_query = "CREATE TABLE Youtube FROM FILE 'data_youtube.csv' USING INDEX EXTENDIBLE('anime_id');"
 structure_dict = {
     "Playstore": {
@@ -31,6 +34,9 @@ def index():
     global last_query
     global structure
     global records
+    global current_table
+    global num_records
+    global valid_structures
 
     def getIndex(query):
         match = re.search(r'INDEX\s+([^\(]+)\(', query)
@@ -44,7 +50,7 @@ def index():
         queries = queries.replace("\r", "").replace("\n", "")
         queries = queries.split(";")
         queries = [q.strip() + ";" for q in queries]
-        if queries:
+        if queries and len(queries[-1]) < 5:
             queries.pop()
         print(queries)
 
@@ -54,34 +60,42 @@ def index():
             if "Youtube" in query:
                 if ("CREATE" in query):
                     index = getIndex(query)
-                    structure = structure_dict["Youtube"][index]
-                    print("structure: ", structure)
+                    valid_structures["Youtube"] = structure_dict["Youtube"][index]
+                print("structure: ", structure)
 
+                structure = valid_structures["Youtube"]
                 parser = fo.ParserYT(scanner, structure)
                 parser.parse() # se ejecuta parse para cualquier query, SELECT, INSERT, ETC.
 
                 if ("SELECT" in query):
+                    current_table = "youtube"
                     records = parser.getRecords() # acceder al atributo inter
+                    num_records = len(records)
                     for record in records:
                         record.show()
                 
             elif "Playstore" in query:
                 if ("CREATE" in query):
-                    structure = structure_dict["Playstore"][index]
+                    index = getIndex(query)
+                    valid_structures["Playstore"] = structure_dict["Playstore"][index]
+                print("structure: ", structure)
 
+                structure = valid_structures["Playstore"]
                 parser = fo.ParserAPP(scanner, structure)
                 parser.parse()
                 
                 if ("SELECT" in query):
+                    current_table = "playstore"
                     #acceder al vector dentro del parser
-                    records = parser.records
-                    #acceder al vector dentro del parser
-        for record in records:
-            record.show()
+                    records = parser.getRecords()
+                    num_records = len(records)
+                    for record in records:
+                        record.show()
+
         return redirect('/')
     else:
         return render_template('index.html', 
-                               applications = records1, 
+                               applications = records, 
                                table = current_table,
                                rows = num_records,
                                last_query=last_query)

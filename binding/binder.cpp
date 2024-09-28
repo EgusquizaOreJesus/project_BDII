@@ -20,6 +20,7 @@ PYBIND11_MODULE(file_organization, m)
     // int -> APP
     py::class_<Parser<int>>(m, "ParserAPP")
         .def(py::init<Scanner*, const char*>())
+        .def("getRecords", &Parser<int>::getRecords)
         .def("parse", &Parser<int>::parse);
 
     py::class_<Record<const char*>>(m, "VideoRecord")

@@ -265,7 +265,10 @@ void Parser<TK>::parseSelect() {
         if (condition.op == "=") {
             const char* key = condition.value1.c_str();
             Record<TK> result = instance->search(key);
-            records.push_back(result);
+            if (strlen(result.key) > 0) {
+                records.push_back(result);
+                std::cout << result.show() << std::endl;
+            }
             cout << result.show() << endl;
         }else if (condition.op == "between") {
             vector<Record<TK>> results;
@@ -276,7 +279,10 @@ void Parser<TK>::parseSelect() {
             const char* key = condition.value1.c_str();
             cout << "Searching for key: " << key << endl;
             Record<TK> result = instance->search(key);
-            records.push_back(result);
+            if (strlen(result.key) > 0) {
+                records.push_back(result);
+                std::cout << result.show() << std::endl;
+            }
             cout << result.show() << endl;
 
         } else if (condition.op == "between") {

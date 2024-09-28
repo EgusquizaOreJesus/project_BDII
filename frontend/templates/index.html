@@ -17,7 +17,7 @@
         <div id="databases">
             <div class="table-name-container">
                 <img src="../static/table-icon.png" alt="table icon">
-                <p class="table-name">Table1</p>
+                <p class="table-name">Playstore</p>
             </div>
             <ul class="table-attributes">
                 <li>App_name</li>
@@ -35,8 +35,17 @@
             </ul>
             <div class="table-name-container">
                 <img src="../static/table-icon.png" alt="table icon">
-                <p class="table-name">Table2</p>
+                <p class="table-name">Youtube</p>
             </div>
+                <ul class="table-attributes">
+                    <li>key</li>
+                    <li>title</li>
+                    <li>channel_title</li>
+                    <li>views</li>
+                    <li>likes</li>
+                    <li>dislikes</li>
+                    <li>comment_count</li>
+                </ul>
         </div>
         <div id="query-container">
             <form action="/" method="post">
@@ -49,9 +58,10 @@
 
     <div id="response-container">
         <table>
+            {% if table == "playstore" %}
             <tr>
+                <th>Key</th>
                 <th>App_name</th>
-                <th>App_id</th>
                 <th>category</th>
                 <th>rating</th>
                 <th>rating_count</th>
@@ -65,21 +75,44 @@
             </tr>
             {% for a in applications %}
             <tr>
-                <td>{{ a.app_name }}</td>
-                <td>{{ a.app_id }}</td>
-                <td>{{ a.category }}</td>
+                <td>{{ a.getKey() }}</td>
+                <td>{{ a.getApp_name() }}</td>
+                <td>{{ a.getCategory() }}</td>
                 <td>{{ a.rating }}</td>
                 <td>{{ a.rating_count }}</td>
-                <td>{{ a.installs }}</td>
+                <td>{{ a.getInstalls() }}</td>
                 <td>{{ a.minimum_installs }}</td>
                 <td>{{ a.maximum_installs }}</td>
                 <td>{{ a.free }}</td>
                 <td>{{ a.price }}</td>
-                <td>{{ a.currency }}</td>
-                <td>{{ a.size }}</td>
+                <td>{{ a.getCurrency() }}</td>
+                <td>{{ a.getSize() }}</td>
 
             </tr>
-        {% endfor %}
+            {% endfor %}
+            {% elif table == "youtube" %}
+            <tr>
+                <th>key</th>
+                <th>title</th>
+                <th>channel_title</th>
+                <th>views</th>
+                <th>likes</th>
+                <th>dislikes</th>
+                <th>comment_count</th>
+            </tr>
+            {% for a in applications %}
+            <tr>
+                <td>{{ a.getKey() }}</td>
+                <td>{{ a.getTitle() }}</td>
+                <td>{{ a.getChannel_title() }}</td>
+                <td>{{ a.views }}</td>
+                <td>{{ a.likes }}</td>
+                <td>{{ a.dislikes }}</td>
+                <td>{{ a.comment_count }}</td>
+
+            </tr>
+            {% endfor %}
+            {%endif%}
         </table>
     </div>
 
