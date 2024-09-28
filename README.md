@@ -488,46 +488,228 @@ struct VideoRecord {
    - Debido a la naturaleza secuencial, se debe realizar una reordenación de los datos tras la inserción o eliminación de registros. Esto añade complejidad computacional, especialmente si el archivo es muy grande.
 
 
-## SQL Parser
+# SQL Parser
 
-### **ParserSQL (parserSQL.h)**
+### **ParserSQL (`parserSQL.h`)**
 
 1. **Constructor del Parser**:
-   - El constructor `Parser::Parser` acepta punteros a diferentes estructuras como `AVLFile`, `ExtendibleHashing`, `SequentialFile`, o `BTree`, junto con un puntero a un objeto `Scanner`. El objetivo principal es inicializar estos punteros y asignarles los valores correspondientes, para luego llamar a `nextToken()` y obtener el primer token de la entrada de texto.
+   - El constructor `Parser::Parser` acepta un puntero a un objeto `Scanner` y una cadena que representa el tipo de estructura de datos (como `AVLFile`, `ExtendibleHashing`, `SequentialFile`, etc.). Dependiendo del valor de la cadena, se crea una instancia de la estructura de datos correspondiente usando la fábrica `DataStructureFactory`. Luego, el constructor inicializa el puntero `scanner` y llama a `nextToken()` para obtener el primer token.
+
+   ```cpp
+   template<class TK>
+   Parser<TK>::Parser(Scanner *scanner, const char *estructura) {
+       this->scanner = scanner;
+       if (strcmp(estructura, "avlFilePlaystore") == 0){
+           this->instance = DataStructureFactory::createAVL<TK>("playstore1.dat");
+           strcpy(fileStructure, "avlFilePlaystore");
+       }
+       else if (strcmp(estructura, "extendibleFileYoutube") == 0){
+           this->instance = DataStructureFactory::createExtendible<TK>("youtube2.dat","dir1.dat");
+           strcpy(fileStructure, "extendibleFileYoutube");
+       }
+       currentToken = scanner->nextToken();
+   }
+   ```
 
 2. **Método `parse()`**:
    - Este método es el núcleo del análisis. Se encarga de recorrer los tokens hasta alcanzar el final del archivo, representado por `Token::END`. En cada iteración, se llama a `parseStatement()` para procesar cada instrucción SQL, y se espera que cada declaración termine con un `Token::SEMICOLON`. Si no es así, se genera un error.
+    ```cpp
+    template<class TK>
+    void Parser<TK>::parse() {
+    while (currentToken->type != Token::END) {
+        parseStatement();
+        if (currentToken->type == Token::SEMICOLON) {
+            currentToken = scanner->nextToken();
+        } else if (currentToken->type != Token::END) {
+            error("Expected token: SEMICOLON but got: " +     string(Token::token_names[currentToken->type]));
+        }
+    }
+    ```
 
 3. **Método `parseStatement()`**:
    - Este método determina el tipo de instrucción SQL (como `CREATE`, `SELECT`, `INSERT` o `DELETE`) basado en el token actual. Una vez identificado el tipo de instrucción, se delega la tarea de análisis a un método específico. Si el token no coincide con una declaración esperada, se lanza un error.
 
+   ```cpp
+    template<class TK>
+    void Parser<TK>::parseStatement() {
+    if (currentToken->type == Token::CREATE) {
+        parseCreateTable();
+    } else if (currentToken->type == Token::SELECT) {
+        parseSelect();
+    } else if (currentToken->type == Token::INSERT) {
+        parseInsert();
+    } else if (currentToken->type == Token::DELETE) {
+        parseDelete();
+    } else {
+        error("Unexpected token: " + string(Token::token_names[currentToken->type]));
+    }
+}```
+
+
 4. **Declaraciones**:
    - Métodos como `parseCreateTable()`, `parseSelect()`, `parseInsert()`, y `parseDelete()` se encargan de desglosar y analizar declaraciones de SQL. Cada uno de estos métodos utiliza `expect()` para asegurarse de que los tokens sigan la estructura esperada y realizan las operaciones.
+   - `parseCreateTable()`: Analiza la declaración `CREATE TABLE`, creando una nueva tabla en la estructura de datos correspondiente e insertando registros.
+   -`parseSelect()`: Analiza la consulta `SELECT` y ejecuta una búsqueda en la estructura de datos basada en condiciones.
+   -`parseInsert()`: Procesa una declaración `INSERT INTO`, leyendo los valores a insertar y agregándolos a la estructura de datos.
+  -`parseDelete()`: Elimina registros en función de una condición `WHERE`.
+```cpp
+template<class TK>
+void Parser<TK>::parseCreateTable() {
+    cout << "---- Parsing CREATE TABLE" << endl;
+    expect(Token::CREATE);
+    expect(Token::TABLE);
+    string tableName = expect(Token::ID)->lexema;
+    expect(Token::FROM);
+    expect(Token::FILE);
+    string fileName = expect(Token::VALUE)->lexema;
+    expect(Token::USING);
+    expect(Token::INDEX);
+    Token* indexType = expectOneOf({Token::AVL, Token::ISAM, Token::EXTENDIBLE, Token::SEQUENTIAL});
+    
+    Table table = {tableName, fileName, Token::token_names[indexType->type]};
+    tables.push_back(table);
+    vector<Record<TK>> records = readCSV<TK>("../" + fileName);
+    this->records = records;
+
+    if (indexType->type == Token::AVL) {
+        if (tableName == "Playstore") {
+            for (int i = 0; i < 10000; ++i) {
+                instance->insert(records[i]);
+            }
+        }
+    }
+}
+
+```
 
 5. **Métodos de Utilidad**:
    - `parseCondition()` y `parseValues()` son dos métodos para analizar condiciones y listas de valores. Estos métodos son esenciales en la implementación de sentencias SQL como `SELECT` e `INSERT`.
 
+```cpp
+template<class TK>
+Condition Parser<TK>::parseCondition() {
+    auto token = expect(Token::ID);
+    string field = token->lexema;
+    Token* opToken = currentToken;
+
+    if (opToken->type == Token::EQUAL) {
+        expect(Token::EQUAL);
+        string value = expect(Token::VALUE)->lexema;
+        return {field, "=", value, ""};
+    } else if (opToken->type == Token::BETWEEN) {
+        expect(Token::BETWEEN);
+        string value1 = expect(Token::VALUE)->lexema;
+        expect(Token::AND);
+        string value2 = expect(Token::VALUE)->lexema;
+        return {field, "between", value1, value2};
+    }
+    return {};
+}
+```
+
 6. **Auxiliares**:
    - Las funciones `expect()` y `expectOneOf()` permiten validar que el token actual coincida con lo que el parser espera encontrar en esa pos . Si el token no es el esperado, se genera un error, lo que ayuda a garantizar que la sintáxis sea correcta antes de proceder.
+
+```cpp
+template<class TK>
+Token* Parser<TK>::expect(Token::Type type) {
+    if (currentToken->type == type) {
+        Token* token = currentToken;
+        currentToken = scanner->nextToken();
+        return token;
+    } else {
+        error("Expected token: " + string(Token::token_names[type]) + " but got: " + string(Token::token_names[currentToken->type]));
+        return nullptr;
+    }
+}
+
+template<class TK>
+Token* Parser<TK>::expectOneOf(const initializer_list<Token::Type> &types) {
+    for (Token::Type type : types) {
+        if (currentToken->type == type) {
+            Token* token = currentToken;
+            currentToken = scanner->nextToken();
+            return token;
+        }
+    }
+    error("Expected one of the following tokens.");
+    return nullptr;
+}
+
+```
 
 ### **TokenSQL (tokensSQL.h)**
 
 1. **Clase `Token`:**
    - Esta clase representa un token, con dos atributos fundamentales: el tipo (`Type`) y el lexema (`lexema`). Además, incluye un conjunto de nombres descriptivos para cada tipo de token y sobrecarga operadores como `<<` para facilitar su impresión y depuración.
+```cpp
+class Token {
+public:
+    Type type;
+    string lexema;
+};
+```
 
 2. **Clase `ReservedWords`:**
-   - Implementa una tabla de hash que asocia las palabras reservadas del lenguaje SQL con sus correspondientes tipos de token. Esto permite distinguir fácilmente entre palabras clave del lenguaje y otros identificadores, optimizando el proceso de análisis.
-
+   - Implementa una tabla de hash que asocia las palabras reservadas del lenguaje SQL con sus correspondientes tipos de token.Esto permite al parser diferenciar fácilmente entre identificadores de usuario y palabras reservadas del lenguaje SQL.
+```cpp
+class ReservedWords {
+public:
+    static unordered_map<string, Token::Type> reservedWords;
+};
+```
 3. **Clase `Scanner`:**
    - El `Scanner` es responsable de tomar la entrada en formato de texto y dividirla en tokens. Aplica reglas gramaticales específicas para identificar diferentes componentes del lenguaje SQL y clasificar los tokens. El scanner es esencial para preparar el conjunto de tokens que serán interpretados por el parser.
+```cpp   
+class Scanner {
+public:
+    Token* nextToken();
+};
+```
+El sistema implementado consta de un scanner que analiza el código de entrada y genera una secuencia de tokens. Luego, el parser se encarga de interpretar esos tokens y ejecutar las instrucciones SQL correspondientes. Se procesan declaraciones como `CREATE`, `SELECT`, `INSERT` y `DELETE`, asegurando que la sintaxis SQL sea correcta y que las
 
+# Benchmark de Inserciones en Estructuras de Datos
 
-El sistema implementado combina un parser que interpreta tokens generados por el scanner, con la capacidad de analizar instrucciones SQL. Las declaraciones `CREATE`, `SELECT`, `INSERT`, y `DELETE` se procesan de manera estructurada mediante métodos especializados, asegurando que cada paso del proceso siga la gramática y estructura esperada de SQL. 
+Este benchmark compara el tiempo de inserción de tres estructuras de datos: Árboles AVL, Hashing Extensible y Archivos Secuenciales. Las pruebas se realizaron en dos conjuntos de datos: **YouTube** y **Google Play Store**. El objetivo es ver el rendimiento de inserciones con diferentes puntos de data y analizar la escala en el tiempo de cada inserciónn por estructura 
+## Dataset: YouTube
 
+La gráfica muestra los tiempos de inserción en milisegundos, utilizando tres estructuras de datos (AVL), (Extendible Hashing) y (Sequential); exlpicados previamente en el informe:
 
+### Gráfica: Tiempos de Inserción vs. Puntos de Datos (YouTube)
 
+![YouTube Dataset - Insertion Times](imagen1.png)
+
+### Conclusionesn de la gráfica:
+- El **Árbol AVL** evidencia un comportamiento de crecimiento notable proporcional al aumenta de los puntos de datos, debido a la necesidad de re-balancear el árbol.
+- El **Extendible Hashing** tiene un comportamiento constante, con tiempos de inserción muy bajos, lo que lo hace ideal para grandes cantidades de datos.
+- La **Estructura Sequential** comienza a relentizarse a medida que se incrementa el número de datos, alcanzando tiempos de inserción elevados en conjuntos de datos grandes.
+
+---
+
+## Dataset: Google Play Store
+
+La siguiente gráfica muestra los tiempos de inserción para el conjunto de datos de **Google Play Store** con las mismas estructuras de datos mencionadas anteriormente.
+
+### Gráfica: Tiempos de Inserción vs. Puntos de Datos (Google Play Store)
+
+![Google Play Store Dataset - Insertion Times](imagen2.png)
+
+### Observaciones:
+- De manera similar al conjunto de datos de YouTube, el **Árbol AVL** muestra un incremento considerable en el tiempo de inserción a medida que crecen los puntos de datos.
+- El **Hashing Extensible** continúa siendo muy eficiente, manteniendo tiempos de inserción constantes incluso con un número elevado de datos.
+- La **Estructura Sequential** también muestra una desaceleración significativa cuando el tamaño de los datos es muy grande, siendo la estructura más ineficiente en este caso.
+
+---
+
+## Conclusiones:
+
+- **AVL Tree** es útil para datos moderados, pero no escala bien cuando se manejan millones de registros debido al sobrecosto del balanceo del árbol.
+- **Extendible Hashing** es la estructura de datos más eficiente para grandes cantidades de datos debido a su rendimiento constante en operaciones de inserción.
+- **Sequential** es una opción adecuada solo para pequeños conjuntos de datos, ya que se vuelve extremadamente ineficiente cuando los datos crecen.
+
+Este benchmark destaca la importancia de seleccionar la estructura de datos adecuada según el tamaño del conjunto de datos y los requisitos de rendimiento.
 
 ## Integrantes
-|                                   **Paolo Medrano Terán**                                   |                             **RELLENA**                             |                               **--**                                |                               **--**                                |                               **--**                                |
-|:-------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
-| <a href="https://github.com/paolomedrano04" target="_blank">`github.com/paolomedrano04`</a> | <a href="https://github.com/--" target="_blank">`github.com/--`</a> | <a href="https://github.com/--" target="_blank">`github.com/--`</a> | <a href="https://github.com/--" target="_blank">`github.com/--`</a> | <a href="https://github.com/--" target="_blank">`github.com/--`</a> |
+|                    **Paolo Medrano Terán**                   |                          **Sebastián Chu Maguiña**                          |                         **Fabricio Chavez**                          |                         **Andrea Coa**                         |                       **Sofía Herrera**                       |
+|:---------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:------------------------------------------------------------------:|:-------------------------------------------------------------:|
+| <a href="https://github.com/paolomedrano04" target="_blank">`github.com/paolomedrano04`</a> | <a href="https://github.com/ChuSebastian" target="_blank">`github.com/ChuSebastian`</a> | <a href="https://github.com/FabricioChavez" target="_blank">`github.com/FabricioChavez`</a> | <a href="https://github.com/Andrea-Coa" target="_blank">`github.com/Andrea-Coa`</a> | <a href="https://github.com/EgusquizaOreJesus" target="_blank">`github.com/EgusquizaOreJesus"`</a> |
