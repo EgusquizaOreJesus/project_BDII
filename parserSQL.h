@@ -56,15 +56,17 @@ public:
     Parser(Scanner* scanner);
     void parse();
     char fileStructure[20];
+    vector<Record<TK>> records;
 
 
     const char* getStructure(){
         return fileStructure;
     }
     Record<TK> readRecord(vector<string> atributes);
+    vector<Record<TK>> getRecords();
     ~Parser() {
     }
-    vector<Record<TK>> records;
+    // vector<Record<TK>> records;
 private:
     std::unique_ptr<FileStructure<TK>> instance;
 
@@ -87,6 +89,12 @@ template<class TK>
 Record<TK> Parser<TK>::readRecord(vector<string> atributes) {
     return Record<TK>();
 }
+
+template<class TK>
+vector<Record<TK>> Parser<TK>::getRecords() {
+    return records;
+}
+
 template<>
 Record<int> Parser<int>::readRecord(vector<string> values) {
     Record<int> record;
@@ -234,7 +242,7 @@ void Parser<TK>::parseCreateTable() {
     cout << "records size: " << records.size() << endl;
     if (indexType->type == Token::AVL) {
         if (tableName == "Playstore") {
-            for (int i = 0; i < 10000; ++i) {
+            for (int i = 0; i < 5000; ++i) {
                 instance->insert(records[i]);
             }
             strcpy(fileStructure, "avlFilePlaystore");
@@ -242,7 +250,7 @@ void Parser<TK>::parseCreateTable() {
         } else if (tableName == "Youtube") {
             cout << "inserting youtube" << endl;
 //            cout << records[0].key << endl;
-            for (int i=0; i < 10000; i++){
+            for (int i=0; i < 5000; i++){
                 instance->insert(records[i]);
             }
 //            instance->printAll();
@@ -293,8 +301,11 @@ void Parser<TK>::parseSelect() {
         if (condition.op == "=") {
             const char* key = condition.value1.c_str();
             Record<TK> result = instance->search(key);
+            if (strlen(result.key) > 0) {
+                records.push_back(result);
+                std::cout << result.show() << std::endl;
+            }
             cout << result.show() << endl;
-            records.push_back(result);
         }else if (condition.op == "between") {
             vector<Record<TK>> results = instance->range_search(condition.value1.c_str(), condition.value2.c_str());
             this->records = results;
@@ -305,8 +316,11 @@ void Parser<TK>::parseSelect() {
             const char* key = condition.value1.c_str();
             cout << "Searching for key: " << key << endl;
             Record<TK> result = instance->search(key);
+            if (strlen(result.key) > 0) {
+                records.push_back(result);
+                std::cout << result.show() << std::endl;
+            }
             cout << result.show() << endl;
-            records.push_back(result);
         } else if (condition.op == "between") {
             vector<Record<TK>> results = instance->range_search(condition.value1.c_str(), condition.value2.c_str());
             this->records = results;

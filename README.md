@@ -59,17 +59,20 @@ Desarrollamos el proyecto con el dataset [Google Playstore](https://www.kaggle.c
 
 ```c++
 struct AppRecord {
-    char app_name[100];
-    char app_id[50];       
-    char category[30];
-    float rating;            
-    int rating_count;       
-    int min_installs;        
-    int max_installs;        
-    bool is_free;            
-    float price;            
-    char currency[5];       
-    char size[10];           
+    char App_name[100];
+    char App_id[100];
+    char category[50];
+    double rating;
+    double rating_count;
+    char installs[100];
+    double minimum_installs;
+    double maximum_installs;
+    bool free;
+    double price;
+    char currency[10];
+    char size[50];
+    int anime_id = 0;
+    double key = 0;         
 };
 ```
 

@@ -1,4 +1,7 @@
 cmake-build-debug/
+
+__pycache__/
+.venv
 data_playstore.csv
 data_youtube.csv
 YTStats2.csv
