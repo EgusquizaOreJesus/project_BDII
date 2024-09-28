@@ -37,11 +37,12 @@ public:
     void update_disk() override {
 
     }
-
+    vector<Record<TK>> range_search(const char* begin, const char* end) override;
     string filename;
     AVLFile(string filename);
     void insert(Record<TK> record) override;
     void printAll() override;
+    void buildCSV(vector<Record<TK>> records) override;
     Record<TK> search(const char* key) override;
     void inorder();
     void bfs();
@@ -50,6 +51,10 @@ public:
 
 };
 
+template<typename TK>
+void AVLFile<TK>::buildCSV(vector<Record<TK>> records) {
+
+}
 
 template<typename TK>
 void AVLFile<TK>::insert(fstream &file, int &parent, int &pos, Record<TK> record, bool isRight) {
@@ -504,9 +509,12 @@ Record<TK> AVLFile<TK>::search(const char* key){
     fstream file(filename, ios::in | ios::out | ios::binary);
     Record<TK> a;
     long pos = pos_root;
+    cout << "pos_root: " << pos_root << endl;
+    cout << "Buscando: " << key << endl;
     while (pos != -1){
         file.seekg(sizeof(long)+ sizeof(long) + pos * sizeof(Record<TK>), ios::beg);
         file.read((char *)(&a), sizeof(Record<TK>));
+        cout << "pos: " << pos << " key: " << a.key << endl;
         if (a == key){
             file.close();
             return a;
@@ -549,10 +557,36 @@ void AVLFile<TK>::bfs() {
 }
 
 template<typename TK>
+vector<Record<TK>> AVLFile<TK>::range_search(const char *begin, const char *end) {
+    fstream file(filename, ios::in | ios::out | ios::binary);
+    vector<Record<TK>> result;
+    vector<int> queue;
+    queue.push_back(pos_root);
+    while (!queue.empty()){
+        int pos = queue.front();
+        queue.erase(queue.begin());
+        Record<TK> a;
+        file.seekg(sizeof(long)+ sizeof(long) + pos * sizeof(Record<TK>), ios::beg);
+        file.read((char *)(&a), sizeof(Record<TK>));
+        if (a.next_del != -2) continue;
+        if (a >= begin && a <= end){
+            result.push_back(a);
+        }
+        if (a.left != -1) queue.push_back(a.left);
+        if (a.right != -1) queue.push_back(a.right);
+    }
+    file.close();
+    return result;
+}
+
+template<typename TK>
 bool AVLFile<TK>::remove(const char* key) {
     fstream file(filename, ios::in | ios::out | ios::binary);
     bool result = remove(file,pos_root, pos_root, key);
     file.close();
     return result;
 }
+
+
+
 #endif //PROJECTO1_AVLFILE_H

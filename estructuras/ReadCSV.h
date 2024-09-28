@@ -30,6 +30,9 @@ struct Record<const char*> : public BaseRecord<const char*> {
     long long likes;
     long long dislikes;
     long long comment_count;
+    // removed
+    bool is_removed = false;
+
     // Campos comunes al AVL
     int left = -1;
     int right = -1;
@@ -46,23 +49,6 @@ struct Record<const char*> : public BaseRecord<const char*> {
         ss << "comment_count: " << comment_count << '\n';
         ss << '\n';
         return ss.str();
-    }
-
-    // setters y getters para lidiar char[] con python
-    string getKey() { return string(key); }
-    string getTitle() { return string(title); }
-    string getChannel_title() { return string(channel_title); }
-    void setKey(const std::string& value) {
-        strncpy(key, value.c_str(), sizeof(key) - 1);
-        key[sizeof(key) - 1] = '\0';
-    }
-    void setTitle(const std::string& value) {
-        strncpy(title, value.c_str(), sizeof(title) - 1);
-        title[sizeof(title) - 1] = '\0';
-    }
-    void setChannel_title(const std::string& value) {
-        strncpy(channel_title, value.c_str(), sizeof(channel_title) - 1);
-        channel_title[sizeof(channel_title) - 1] = '\0';
     }
 
 
@@ -84,17 +70,28 @@ struct Record<const char*> : public BaseRecord<const char*> {
     bool operator<(const Record<const char*>& other) const {
         return strcmp(key, other.key) < 0;
     }
-
+    bool operator<=(const Record<const char*>& other) const {
+        return strcmp(key, other.key) <= 0;
+    }
     bool operator>(const Record<const char*>& other) const {
         return strcmp(key, other.key) > 0;
+    }
+    bool operator>=(const Record<const char*>& other) const {
+        return strcmp(key, other.key) >= 0;
     }
 
     bool operator<(const char* key) const {
         return strcmp(this->key, key) < 0;
     }
+    bool operator<=(const char* key) const {
+        return strcmp(this->key, key) <= 0;
+    }
 
     bool operator>(const char* key) const {
         return strcmp(this->key, key) > 0;
+    }
+    bool operator>=(const char* key) const {
+        return strcmp(this->key, key) >= 0;
     }
 };
 template<>
@@ -111,6 +108,9 @@ struct Record<int>: public BaseRecord<int> {
     double price;
     char currency[10];
     char size[50];
+    // removed
+    bool is_removed = false;
+
     // Campos comunes al AVL
     int left = -1;
     int right = -1;
@@ -133,44 +133,6 @@ struct Record<int>: public BaseRecord<int> {
         ss << '\n';
         return ss.str();
     }
-
-    // setters y getters para lidiar char[] con python
-    string getKey() { return string(key);}
-    string getApp_name() { return string(App_name); }
-    string getCategory() { return string(category); }
-    string getInstalls() { return string(installs); }
-    string getCurrency() { return string(currency); }
-    string getSize() { return string(size); }
-    void setKey(const std::string& value) {
-        strncpy(key, value.c_str(), sizeof(key) - 1);
-        key[sizeof(key) - 1] = '\0';
-    }
-
-    void setApp_name(const std::string& value) {
-        strncpy(App_name, value.c_str(), sizeof(App_name) - 1);
-        App_name[sizeof(App_name) - 1] = '\0';
-    }
-
-    void setCategory(const std::string& value) {
-        strncpy(category, value.c_str(), sizeof(category) - 1);
-        category[sizeof(category) - 1] = '\0';
-    }
-
-    void setInstalls(const std::string& value) {
-        strncpy(installs, value.c_str(), sizeof(installs) - 1);
-        installs[sizeof(installs) - 1] = '\0';
-    }
-
-    void setCurrency(const std::string& value) {
-        strncpy(currency, value.c_str(), sizeof(currency) - 1);
-        currency[sizeof(currency) - 1] = '\0';
-    }
-
-    void setSize(const std::string& value) {
-        strncpy(size, value.c_str(), sizeof(size) - 1);
-        size[sizeof(size) - 1] = '\0';
-    }
-
     void showAVL(){
         cout << key << " | " << left << " | " << right << " | " << height << endl;
     }
@@ -185,19 +147,31 @@ struct Record<int>: public BaseRecord<int> {
     bool operator<(const Record<int>& other) const {
         return strcmp(key, other.key) < 0;
     }
+    bool operator<=(const Record<int>& other) const {
+        return strcmp(key, other.key) <= 0;
+    }
 
     bool operator>(const Record<int>& other) const {
         return strcmp(key, other.key) > 0;
+    }
+    bool operator>=(const Record<int>& other) const {
+        return strcmp(key, other.key) >= 0;
     }
 
     bool operator<(const char* key) const {
         return strcmp(this->key, key) < 0;
     }
 
+    bool operator<=(const char* key) const {
+        return strcmp(this->key, key) <= 0;
+    }
     bool operator>(const char* key) const {
         return strcmp(this->key, key) > 0;
     }
 
+    bool operator>=(const char* key) const {
+        return strcmp(this->key, key) >= 0;
+    }
 };
 // Función para eliminar las comillas alrededor de un campo
 inline std::string trimQuotes(const std::string& str) {

@@ -117,9 +117,10 @@ public:
     int hash_binary(Record<TK> key);   // convertir un entero a una cadena de bits
     int hash_binary(const char* key);   // convertir un entero a una cadena de bits
     ExtendibleHashing(const string &fileName = "data.dat", const string &directoryName = "directory.dat");
-
+    void buildCSV(vector<Record<TK>> records) override;
     void insert(Record<TK> key);
     Record<TK> search(const char* key) override;
+    vector<Record<TK>> range_search(const char* key1, const char* key2) override;
     bool remove(const char* key) override;
     void split(Bucket<TK> &bucket, int index);
     void display_directory();
@@ -138,8 +139,18 @@ public:
 };
 
 template<typename TK>
+void ExtendibleHashing<TK>::buildCSV(vector<Record<TK>> records) {
+
+}
+
+template<typename TK>
 void ExtendibleHashing<TK>::printAll() {
 
+}
+
+template<typename TK>
+vector<Record<TK>> ExtendibleHashing<TK>::range_search(const char *key1, const char *key2) {
+    return vector<Record<TK>>();
 }
 
 template<typename TK>
