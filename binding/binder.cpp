@@ -14,11 +14,13 @@ PYBIND11_MODULE(file_organization, m)
     // const char * ->  YT
     py::class_<Parser<const char*>>(m, "ParserYT")
         .def(py::init<Scanner*, const char*>())
+        .def("getRecords", &Parser<const char*>::getRecords)
         .def("parse", &Parser<const char*>::parse);
 
     // int -> APP
     py::class_<Parser<int>>(m, "ParserAPP")
         .def(py::init<Scanner*, const char*>())
+        .def("getRecords", &Parser<int>::getRecords)
         .def("parse", &Parser<int>::parse);
 
     py::class_<Record<const char*>>(m, "VideoRecord")
