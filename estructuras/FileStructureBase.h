@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "ReadCSV.h"
 template<typename TK>
 struct FileStructure {
     virtual ~FileStructure() = default;
