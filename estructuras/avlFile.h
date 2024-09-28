@@ -46,6 +46,7 @@ public:
     void inorder();
     void bfs();
     bool remove(const char* key) override;
+    void buildCSV(vector<Record<TK>> records) override {}
     ~AVLFile() = default;
 
 };

@@ -130,6 +130,7 @@ public:
     void insert_encajado(Bucket<TK> &bucket, Record<TK> key, int pos);
     void save_directory();
     bool remove_bucket(Bucket<TK> &bucket, const char* key, int head, int pos, int index);
+    void buildCSV(vector<Record<TK>> records) override {}
     ~ExtendibleHashing(){
         if (buffer.size() > 0){
             buffer.flush_to_disk();

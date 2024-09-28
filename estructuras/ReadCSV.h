@@ -30,6 +30,8 @@ struct Record<const char*> : public BaseRecord<const char*> {
     long long likes;
     long long dislikes;
     long long comment_count;
+    // Campos comunes Sequential
+    bool is_removed = false;
     // Campos comunes al AVL
     int left = -1;
     int right = -1;
@@ -111,6 +113,8 @@ struct Record<int>: public BaseRecord<int> {
     double price;
     char currency[10];
     char size[50];
+    // Campos comunes del Sequential
+    bool is_removed = false;
     // Campos comunes al AVL
     int left = -1;
     int right = -1;

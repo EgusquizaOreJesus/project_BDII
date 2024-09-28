@@ -10,7 +10,7 @@
 using namespace std;
 
 template <typename TK>
-class Sequential
+class Sequential : public FileStructure<TK>
 {
 private:
   string main_file;
@@ -40,34 +40,41 @@ public:
     file.close();
   }
 
-  void buildCSV(string csv_file)
+  void buildCSV(vector<Record<TK>> records) override
   {
-    std::vector<Record<TK>> records;
 
-    // Detectar tipo de TK y leer el CSV correspondiente
-    if constexpr (std::is_same<TK, int>::value)
-      records = readCSV_playstore(csv_file);
-    
-    else if constexpr (std::is_same<TK, const char *>::value)
-      records = readCSV_youtube(csv_file);
-    
+    // // Detectar tipo de TK y leer el CSV correspondiente
+    // if constexpr (std::is_same<TK, int>::value)
+    //   records = readCSV_playstore(csv_file);
+
+    // else if constexpr (std::is_same<TK, const char *>::value)
+    //   records = readCSV_youtube(csv_file);
+
     sort(records.begin(), records.end(), compare_key);
+
+    int _size = 0;
+
+    if (records.size() > 100000)
+      _size = 100000;
+    
+    else
+      _size = records.size();
 
     // Se construye el archivo principal
     fstream file(main_file, ios::in | ios::out | ios::binary);
 
     // Al construir la cantidad de registros es 0
-    int size = 0;
+    int records_size = 0;
 
-    for (int i = 0; i < records.size(); i++)
+    for (int i = 0; i < _size; i++)
     {
       file.seekp(0, ios::end);
       file.write((char *)&records[i], sizeof(Record<TK>));
-      size++;
+      records_size++;
     }
 
     file.seekp(0, ios::beg);
-    file.write((char *)&size, sizeof(int));
+    file.write((char *)&records_size, sizeof(int));
 
     file.close();
   }
@@ -344,7 +351,7 @@ public:
     return Record<TK>();
   }
 
-  bool remove_record(const char *key)
+  bool remove(const char *key)
   {
     // Buscar elemento en el archivo de main
     int pos = pos_search(key);
@@ -490,7 +497,7 @@ public:
     file.close();
   }
 
-  void print_mfile()
+  void printAll() override
   {
     ifstream file(main_file, ios::binary);
     Record<TK> record;
@@ -506,21 +513,7 @@ public:
     file.close();
   }
 
-  void print_ifile()
-  {
-    ifstream file(insert_file, ios::binary);
-    Record<TK> record;
-    int size;
-    file.read((char *)&size, sizeof(int));
-    while (file.read((char *)&record, sizeof(Record<TK>)))
-    {
-      if (record.is_removed == false)
-        cout << record.show();
-    }
-
-    cout << "size: " << size << endl;
-    file.close();
-  }
+  void update_disk() override {}  
 };
 
 // TESTS: YOUTUBE DATASET

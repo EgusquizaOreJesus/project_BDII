@@ -11,6 +11,7 @@
 #include "tokenS.h"
 #include "estructuras/avlFile.h"
 #include "estructuras/ExtendibleHashing.h"
+#include "estructuras/Sequential.h"
 
 using namespace std;
 
@@ -38,6 +39,11 @@ public:
     template <typename TK>
     static std::unique_ptr<FileStructure<TK>> createExtendible(string filename, string directory) {
         return std::make_unique<ExtendibleHashing<TK>>(filename,directory);
+    }
+
+    template <typename TK>
+    static std::unique_ptr<FileStructure<TK>> createSequential(string filename) {
+        return std::make_unique<Sequential<TK>>(filename);
     }
 
     // AGREGAR MAS ESTRUCTURAS
@@ -112,8 +118,6 @@ Record<const char*> Parser<const char*>::readRecord(vector<string> values) {
 template<class TK>
 Parser<TK>::Parser(Scanner *scanner) {
     this->scanner = scanner;
-//    avlApps = new AVLFile<int>("playstore.dat");
-//    avlYoutube = new AVLFile<const char*>("youtube_data.bin");
     currentToken = scanner->nextToken();
 }
 
@@ -121,10 +125,12 @@ template<class TK>
 Parser<TK>::Parser(Scanner *scanner, const char *estructura) {
     this->scanner = scanner;
     if (strcmp(estructura, "avlFilePlaystore") == 0){
+        cout << "avlFilePlaystore" << endl;
         this->instance = DataStructureFactory::createAVL<TK>("playstore1.dat");
         strcpy(fileStructure, "avlFilePlaystore");
     }
     else if (strcmp(estructura, "avlFileYoutube") == 0){
+        cout << "avlFileYoutube" << endl;
         this->instance = DataStructureFactory::createAVL<TK>("youtube1.dat");
         strcpy(fileStructure, "avlFileYoutube");
     }
@@ -134,9 +140,21 @@ Parser<TK>::Parser(Scanner *scanner, const char *estructura) {
         strcpy(fileStructure, "extendibleFileYoutube");
     }
     else if (strcmp(estructura, "extendibleFilePlaystore") == 0){
+        cout << "extendibleFilePlaystore" << endl;
         this->instance = DataStructureFactory::createExtendible<TK>("playstore2.dat","dir2.dat");
         strcpy(fileStructure, "extendibleFilePlaystore");
     }
+
+    else if (strcmp(estructura, "sequentialFileYoutube") == 0){
+        cout << "sequentialFileYoutube" << endl;
+        this->instance = DataStructureFactory::createSequential<TK>("youtube3.dat");
+        strcpy(fileStructure, "sequentialFileYoutube");
+    }
+    else if (strcmp(estructura, "sequentialFilePlaystore") == 0){
+        this->instance = DataStructureFactory::createSequential<TK>("playstore3.dat");
+        strcpy(fileStructure, "sequentialFilePlaystore");
+    }
+
     currentToken = scanner->nextToken();
 }
 
@@ -197,7 +215,7 @@ void Parser<TK>::parseCreateTable() {
     string fileName = expect(Token::VALUE)->lexema;
     expect(Token::USING);
     expect(Token::INDEX);
-    Token* indexType = expectOneOf({Token::AVL, Token::ISAM, Token::EXTENDIBLE});
+    Token* indexType = expectOneOf({Token::AVL, Token::ISAM, Token::EXTENDIBLE, Token::SEQUENTIAL});
     expect(Token::LPARENT);
     string indexField = expect(Token::VALUE)->lexema;
     expect(Token::RPARENT);
@@ -207,9 +225,10 @@ void Parser<TK>::parseCreateTable() {
     tables.push_back(table);
     vector<Record<TK>> records = readCSV<TK>("../" + fileName);
     cout << "records size: " << records.size() << endl;
+    
     if (indexType->type == Token::AVL) {
         if (tableName == "Playstore") {
-            for (int i = 0; i < 100000; ++i) {
+            for (int i = 0; i < 100000; ++i) { 
                 instance->insert(records[i]);
             }
             strcpy(fileStructure, "avlFilePlaystore");
@@ -222,7 +241,8 @@ void Parser<TK>::parseCreateTable() {
             strcpy(fileStructure, "avlFileYoutube");
         }
     }
-    else if (indexType->type == Token::EXTENDIBLE){
+
+    else if (indexType->type == Token::EXTENDIBLE) {
         if (tableName == "Playstore"){
             for (int i = 0; i < 100000; ++i) {
                 instance->insert(records[i]);
@@ -238,6 +258,17 @@ void Parser<TK>::parseCreateTable() {
             // flush disk
             instance->update_disk();
             strcpy(fileStructure, "extendibleFileYoutube");
+        }
+    }
+
+    else if(indexType->type == Token::SEQUENTIAL) {
+        if (tableName == "Playstore"){
+            this->instance->buildCSV(records);
+            strcpy(fileStructure, "sequentialFilePlaystore");
+        }
+        else if (tableName == "Youtube"){
+            this->instance->buildCSV(records);
+            strcpy(fileStructure, "sequentialFileYoutube");
         }
     }
 

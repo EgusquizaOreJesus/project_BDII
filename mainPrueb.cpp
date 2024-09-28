@@ -5,15 +5,16 @@
 #include <iostream>
 #include "tokenS.h"
 #include "parserSQL.h"
-#include "estructuras/avlFile.h"
+// #include "estructuras/avlFile.h"
+#include "estructuras/Sequential.h"
 using namespace std;
 
 int main() {
     const char* input =
-//            "CREATE TABLE Playstore FROM FILE 'data_playstore.csv' USING INDEX EXTENDIBLE('anime_id');";
+           "CREATE TABLE Playstore FROM FILE 'data_youtube.csv' USING INDEX SEQUENTIAL('anime_id');";
     //            "INSERT INTO Animes VALUES (1, 'Naruto', 'Shounen', 'TV', 220, 8.3, 1000000);";
 //            "INSERT INTO Youtube VALUES ('__4c1JCHv32', 'Mahou Shoujo Ep. 3', 'Aniplex', 3000000, 100000, 3512, 2000000);";
-            "SELECT * FROM Playstore WHERE key = 'com.whatsopen.app';";
+            // "SELECT * FROM Playstore WHERE key = 'com.whatsopen.app';";
 //            "SELECT * FROM Youtube WHERE key = '__4c1JCHvaQ';";
 //            "SELECT * FROM Animes WHERE anime_id BETWEEN 1 AND 2;"
 //            "DELETE FROM Youtube WHERE key = '__4c1JCHv32';";
@@ -25,8 +26,8 @@ int main() {
     Scanner scanner(input);
 
     const char* structure = "avlFileYoutube";
-    structure = "extendibleFileYoutube";
-    structure = "extendibleFilePlaystore";
+    structure = "sequentialFileYoutube";
+    structure = "sequentialFilePlaystore";
 
     // int                                      -> para cargar data de playstore
     // const char*                              -> para cargar data de youtube

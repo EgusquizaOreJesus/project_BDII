@@ -15,4 +15,7 @@ struct FileStructure {
 
     // extendible
     virtual void update_disk() = 0;
+
+    // Sequential
+    virtual void buildCSV(vector<Record<TK>> records) = 0;
 };

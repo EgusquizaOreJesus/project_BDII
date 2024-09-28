@@ -16,9 +16,9 @@ class Token {
 public:
     enum Type {
         SELECT, CREATE, TABLE, FROM, ALL, WHERE, DELETE, EQUAL, BETWEEN, AND, INSERT, INTO, VALUES, FILE,
-        LPARENT, RPARENT, INDEX, USING, AVL, ISAM, EXTENDIBLE, END, ERR, SEMICOLON, COLON, ID, EOL, NUM, VALUE, QUOTE, FILENAME, TRUE, FALSE, FLOAT
+        LPARENT, RPARENT, INDEX, USING, AVL, ISAM, EXTENDIBLE, END, ERR, SEMICOLON, COLON, ID, EOL, NUM, VALUE, QUOTE, FILENAME, TRUE, FALSE, FLOAT, SEQUENTIAL
     };
-    static const char* token_names[34];
+    static const char* token_names[35];
     Type type;
     string lexema;
     Token(Type);
