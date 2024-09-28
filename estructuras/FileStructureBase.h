@@ -12,6 +12,10 @@ struct FileStructure {
     virtual void printAll() = 0;
     virtual bool remove(const char* key) = 0;
     virtual Record<TK> search(const char* key) = 0;
+    virtual vector<Record<TK>> range_search(const char* key1, const char* key2) = 0;
+
+    // sequential
+    virtual void buildCSV(vector<Record<TK>> records) = 0;
 
     // extendible
     virtual void update_disk() = 0;

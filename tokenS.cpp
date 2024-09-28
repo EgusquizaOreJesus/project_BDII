@@ -5,11 +5,11 @@
 #include "tokenS.h"
 #include <cstring>
 
-const char* Token::token_names[34] = {
+const char* Token::token_names[35] = {
         "SELECT", "CREATE", "TABLE", "FROM", "ALL", "WHERE", "DELETE", "EQUAL", "BETWEEN", "AND",
         "INSERT", "INTO", "VALUES", "FILE", "LPARENT", "RPARENT", "INDEX", "USING", "AVL",
          "EXTENDIBLE", "END", "ERR", "SEMICOLON", "COLON", "ID", "EOL", "NUM", "VALUE",
-        "QUOTE", "FILENAME", "TRUE", "FALSE", "FLOAT"
+        "QUOTE", "FILENAME", "TRUE", "FALSE", "FLOAT", "BPLUS","SEQUENTIAL"
 };
 
 Token::Token(Type type) : type(type) { lexema = ""; }
@@ -44,6 +44,7 @@ ReservedWords::ReservedWords() {
     palabras.insert(std::make_pair("USING", Token::USING));
     palabras.insert(std::make_pair("AVL", Token::AVL));
     palabras.insert(std::make_pair("EXTENDIBLE", Token::EXTENDIBLE));
+    palabras.insert(std::make_pair("SEQUENTIAL", Token::SEQUENTIAL));
 }
 
 Token::Type ReservedWords::search(const std::string& lexema) {

@@ -11,6 +11,7 @@
 #include "tokenS.h"
 #include "estructuras/avlFile.h"
 #include "estructuras/ExtendibleHashing.h"
+#include "estructuras/Sequential.h"
 
 using namespace std;
 
@@ -40,6 +41,11 @@ public:
         return std::make_unique<ExtendibleHashing<TK>>(filename,directory);
     }
 
+    template<typename TK>
+    static std::unique_ptr<FileStructure<TK>> createSequential(string filename){
+        return std::make_unique<Sequential<TK>>(filename);
+    }
+
     // AGREGAR MAS ESTRUCTURAS
 };
 template<class TK>
@@ -58,6 +64,7 @@ public:
     Record<TK> readRecord(vector<string> atributes);
     ~Parser() {
     }
+    vector<Record<TK>> records;
 private:
     std::unique_ptr<FileStructure<TK>> instance;
 
@@ -137,13 +144,27 @@ Parser<TK>::Parser(Scanner *scanner, const char *estructura) {
         this->instance = DataStructureFactory::createExtendible<TK>("playstore2.dat","dir2.dat");
         strcpy(fileStructure, "extendibleFilePlaystore");
     }
+    else if (strcmp(estructura, "sequentialFileYoutube") == 0){
+        cout << "sequentialFileYoutube" << endl;
+        this->instance = DataStructureFactory::createSequential<TK>("youtube3.dat");
+        cout << "instance created" << endl;
+        strcpy(fileStructure, "sequentialFileYoutube");
+    }
+    else if (strcmp(estructura, "sequentialFilePlaystore") == 0){
+        this->instance = DataStructureFactory::createSequential<TK>("playstore3.dat");
+        strcpy(fileStructure, "sequentialFilePlaystore");
+    }
     currentToken = scanner->nextToken();
 }
 
 template<class TK>
 Token *Parser<TK>::expectOneOf(const initializer_list<Token::Type> &types) {
+    cout << "---- Expecting one of the following tokens" << endl;
+    cout << "current token: " << currentToken->type << endl;
     for (Token::Type type : types) {
+        cout << "type: " << type << endl;
         if (currentToken->type == type) {
+            cout << "found token: " << Token::token_names[type] << endl;
             Token* token = currentToken;
             currentToken = scanner->nextToken();
             return token;
@@ -189,6 +210,7 @@ void Parser<TK>::parseStatement() {
 
 template<class TK>
 void Parser<TK>::parseCreateTable() {
+    cout << "---- Parsing CREATE TABLE" << endl;
     expect(Token::CREATE);
     expect(Token::TABLE);
     string tableName = expect(Token::ID)->lexema;
@@ -197,7 +219,9 @@ void Parser<TK>::parseCreateTable() {
     string fileName = expect(Token::VALUE)->lexema;
     expect(Token::USING);
     expect(Token::INDEX);
-    Token* indexType = expectOneOf({Token::AVL, Token::ISAM, Token::EXTENDIBLE});
+    cout << "tableName: " << tableName << endl;
+    Token* indexType = expectOneOf({Token::AVL, Token::ISAM, Token::EXTENDIBLE, Token::SEQUENTIAL});
+    cout << "indexType: " << Token::token_names[indexType->type] << endl;
     expect(Token::LPARENT);
     string indexField = expect(Token::VALUE)->lexema;
     expect(Token::RPARENT);
@@ -206,19 +230,22 @@ void Parser<TK>::parseCreateTable() {
     Table table = {tableName, fileName, Token::token_names[indexType->type]};
     tables.push_back(table);
     vector<Record<TK>> records = readCSV<TK>("../" + fileName);
+    this->records = records;
     cout << "records size: " << records.size() << endl;
     if (indexType->type == Token::AVL) {
         if (tableName == "Playstore") {
-            for (int i = 0; i < 100000; ++i) {
+            for (int i = 0; i < 10000; ++i) {
                 instance->insert(records[i]);
             }
             strcpy(fileStructure, "avlFilePlaystore");
             instance->printAll();
         } else if (tableName == "Youtube") {
-            for (int i=0; i < records.size(); i++){
+            cout << "inserting youtube" << endl;
+//            cout << records[0].key << endl;
+            for (int i=0; i < 10000; i++){
                 instance->insert(records[i]);
             }
-            instance->printAll();
+//            instance->printAll();
             strcpy(fileStructure, "avlFileYoutube");
         }
     }
@@ -240,7 +267,16 @@ void Parser<TK>::parseCreateTable() {
             strcpy(fileStructure, "extendibleFileYoutube");
         }
     }
-
+    else if(indexType->type == Token::SEQUENTIAL) {
+        if (tableName == "Playstore"){
+            this->instance->buildCSV(records);
+            strcpy(fileStructure, "sequentialFilePlaystore");
+        }
+        else if (tableName == "Youtube"){
+            this->instance->buildCSV(records);
+            strcpy(fileStructure, "sequentialFileYoutube");
+        }
+    }
     cout << "---- Created table " << tableName << " from file " << fileName << " using index " << indexField << " (" << Token::token_names[indexType->type] << ")" << endl;
 }
 
@@ -258,8 +294,10 @@ void Parser<TK>::parseSelect() {
             const char* key = condition.value1.c_str();
             Record<TK> result = instance->search(key);
             cout << result.show() << endl;
+            records.push_back(result);
         }else if (condition.op == "between") {
-            vector<Record<TK>> results;
+            vector<Record<TK>> results = instance->range_search(condition.value1.c_str(), condition.value2.c_str());
+            this->records = results;
         }
     } else if (tableName == "Youtube") {
         cout << "Searching in Youtube" << endl;
@@ -268,9 +306,11 @@ void Parser<TK>::parseSelect() {
             cout << "Searching for key: " << key << endl;
             Record<TK> result = instance->search(key);
             cout << result.show() << endl;
-
+            records.push_back(result);
         } else if (condition.op == "between") {
-            vector<Record<TK>> results;
+            vector<Record<TK>> results = instance->range_search(condition.value1.c_str(), condition.value2.c_str());
+            this->records = results;
+            cout << "Results size: " << results.size() << endl;
         }
     }
 }
