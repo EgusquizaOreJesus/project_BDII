@@ -84,13 +84,13 @@ void benchmark_search(FileStructure<Tk>* structure, const vector<Record<Tk>> rec
 
         auto start = high_resolution_clock::now();
         for (int i = 0; i < data_size; ++i) {
-            auto c= structure->search(records[i]);
+            auto c= structure->search(records[i].key);
         }
 
         auto end = high_resolution_clock::now();
         duration<double, std::milli> elapsed = end - start;
         times.push_back(elapsed.count());  // Guardar el tiempo en milisegundos
-        delete_file(test_file_times);
+
 
     }
     save_times_to_csv(filename, times);  // Guardar en CSV
@@ -104,13 +104,13 @@ void benchmark_search_hash(FileStructure<Tk>* structure, const vector<Record<Tk>
 
         auto start = high_resolution_clock::now();
         for (int i = 0; i < data_size; ++i) {
-            auto c= structure->search(records[i]);
+            auto c= structure->search(records[i].key);
         }
 
         auto end = high_resolution_clock::now();
         duration<double, std::milli> elapsed = end - start;
         times.push_back(elapsed.count());  // Guardar el tiempo en milisegundos
-        delete_file(test_file_times);
+
 
     }
     save_times_to_csv(filename, times);  // Guardar en CSV
@@ -138,41 +138,68 @@ void benchmark_range_search(FileStructure<Tk>* structure, const vector<Record<Tk
 
 }
 
+
+
 int main(){
 
     vector<Record<const char*>> r = readCSV<const char *>("data_youtube.csv");
     sort(r.begin() , r.end());
-    vector<int> data_points{10 , 50 , 100 , 1000 , 2000 , 5000 , 10000  , 15000,  20000};
-   cout<<"--------------------------PRUEBAS YOUTUBE----------------------------------"<<endl;
-
+    vector<int> data_points{10 , 50 , 100 , 200 ,  300  ,  500};
+//   cout<<"--------------------------PRUEBAS YOUTUBE----------------------------------"<<endl;
+//
     FileStructure<const char *>* test_youtube;
+//
+//    test_youtube = new AVLFile<const char *>(test_file_times);
+//    benchmark_insert<const char *>(test_youtube , r , data_points , "times_insert_avl.csv");
+//    test_youtube = nullptr;
+//    cout<<"TEST AVL END"<<endl;
+//    test_youtube = new ExtendibleHashing<const char*>(test_file_times , "hash_index.bin");
+//    benchmark_insert_hash<const char *>(test_youtube , r , data_points , "times_insert_ehash.csv" , "hash_index.bin" );
+//    test_youtube = nullptr;
+//    cout<<"TEST EHASH END"<<endl;
+//    test_youtube = new Sequential<const char *>(test_file_times);
+//    benchmark_insert(test_youtube , r , data_points , "times_insert_sequential.csv");
+//    cout<<"TEST Sequential END"<<endl;
+//
+//    cout<<"--------------------------PRUEBAS PLAYSTORE ----------------------------------"<<endl;
+//
+//    FileStructure<const char *>* test_playstore;
+//    test_playstore = new AVLFile<const char *>(test_file_times);
+//    benchmark_insert<const char *>(test_playstore , r , data_points , "times_insert_avl_app.csv");
+//    test_playstore = nullptr;
+//    cout<<"TEST AVL END"<<endl;
+//    test_playstore = new ExtendibleHashing<const char*>(test_file_times , "hash_index.bin");
+//    benchmark_insert_hash<const char *>(test_playstore , r , data_points , "times_insert_ehash__app.csv" , "hash_index.bin" );
+//    test_playstore = nullptr;
+//    cout<<"TEST EHASH END"<<endl;
+//    test_playstore = new Sequential<const char *>(test_file_times);
+//    benchmark_insert(test_playstore , r , data_points , "times_insert_sequential__app.csv");
+//    cout<<"TEST Sequential END"<<endl;
+//
 
-    test_youtube = new AVLFile<const char *>(test_file_times);
-    benchmark_insert<const char *>(test_youtube , r , data_points , "times_insert_avl.csv");
-    test_youtube = nullptr;
-    cout<<"TEST AVL END"<<endl;
-    test_youtube = new ExtendibleHashing<const char*>(test_file_times , "hash_index.bin");
-    benchmark_insert_hash<const char *>(test_youtube , r , data_points , "times_insert_ehash.csv" , "hash_index.bin" );
-    test_youtube = nullptr;
-    cout<<"TEST EHASH END"<<endl;
+
+    cout<<"--------------------------PRUEBAS SEARCH YOUTUBE----------------------------------"<<endl;
+//    test_youtube = new AVLFile<const char *>(test_file_times);
+//    for (int i = 0; i < 500; ++i) {
+//       test_youtube->insert(r[i]);
+//    }
+//
+//    test_youtube = nullptr;
+//    benchmark_search<const char *>(test_youtube ,r , data_points  , "times_search_avl.csv");
+//    delete_file(test_file_times);
+//    test_youtube = new ExtendibleHashing<const char*>(test_file_times , "hash_index.bin");
+//    for (int i = 0; i < 500; ++i) {
+//        test_youtube->insert(r[i]);
+//    }
+//    benchmark_search_hash<const char*>(test_youtube , r , data_points , "times_search_hash.csv", "hash_index.bin");
+//    delete_file(test_file_times);
+//    test_youtube = nullptr;
     test_youtube = new Sequential<const char *>(test_file_times);
-    benchmark_insert(test_youtube , r , data_points , "times_insert_sequential.csv");
-    cout<<"TEST Sequential END"<<endl;
-
-    cout<<"--------------------------PRUEBAS PLAYSTORE ----------------------------------"<<endl;
-
-    FileStructure<const char *>* test_playstore;
-    test_playstore = new AVLFile<const char *>(test_file_times);
-    benchmark_insert<const char *>(test_playstore , r , data_points , "times_insert_avl_app.csv");
-    test_playstore = nullptr;
-    cout<<"TEST AVL END"<<endl;
-    test_playstore = new ExtendibleHashing<const char*>(test_file_times , "hash_index.bin");
-    benchmark_insert_hash<const char *>(test_playstore , r , data_points , "times_insert_ehash__app.csv" , "hash_index.bin" );
-    test_playstore = nullptr;
-    cout<<"TEST EHASH END"<<endl;
-    test_playstore = new Sequential<const char *>(test_file_times);
-    benchmark_insert(test_playstore , r , data_points , "times_insert_sequential__app.csv");
-    cout<<"TEST Sequential END"<<endl;
+    for (int i = 0; i < 500; ++i) {
+        test_youtube->insert(r[i]);
+    }
+    benchmark_search<const char *>(test_youtube ,r , data_points  , "times_search_sequential.csv");
+    delete_file(test_file_times);
 
 
 
