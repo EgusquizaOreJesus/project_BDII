@@ -37,7 +37,7 @@ Las técnicas usadas para este proyecto son las siguientes:
 - [Extendible Hashing]
 - [AVL]
 - [Sequential]
-### Implementació de funciones
+### Implementación de funciones
 
 Para cada técnica, se implementó las siguientes funciones:
 
@@ -88,7 +88,7 @@ struct AppRecord {
 |    ```size ```     |   Tamaño de la aplicación    |
 
 ### DataSet2
-Desarrollamos el proyecto con un 2do dataset  [YouTube Stats](https://www.kaggle.com/datasets/datasnaek/youtube-new). Esta elección fue debida a los siguientes factores:
+Desarrollamos el proyecto con un 2do dataset  [YouTube Stats](https://www.kaggle.com/datasets/datasnaek/youtube-new)  extraído de Kaggle pero limpiado y guardado como un nuevo csv posteriormente, denominado : "YTstats2.csv" . Esta elección fue debida a los siguientes factores:
 
 - **Complejidad de los datos**: Este dataset ofrece una amplia variedad de información relacionada con videos de YouTube, como el título del video, el nombre del canal, vistas, likes, dislikes, y cantidad de comentarios. Estos datos permiten realizar pruebas exhaustivas y explorar diferentes tipos de consultas basadas en el rendimiento y la estructura de los registros.
 
@@ -100,14 +100,13 @@ Desarrollamos el proyecto con un 2do dataset  [YouTube Stats](https://www.kaggle
 
 ```c++
 struct VideoRecord {
-    char key[100];              // ID único del video
-    char title[200];            // Título del video
-    char channel_title[100];    // Nombre del canal
-    long long views;            // Número de vistas del video
-    long long likes;            // Número de likes recibidos
-    long long dislikes;         // Número de dislikes recibidos
-    long long comment_count;    // Cantidad de comentarios
-};
+    char key[100];             
+    char title[200];
+    char channel_title[100];
+    long long views;   
+    long long likes;         
+    long long dislikes;    
+    long long comment_count; 
 ```
 
 
@@ -487,6 +486,43 @@ struct VideoRecord {
 
 4. **Reordenamiento de Datos**:
    - Debido a la naturaleza secuencial, se debe realizar una reordenación de los datos tras la inserción o eliminación de registros. Esto añade complejidad computacional, especialmente si el archivo es muy grande.
+
+
+## SQL Parser
+
+### **ParserSQL (parserSQL.h)**
+
+1. **Constructor del Parser**:
+   - El constructor `Parser::Parser` acepta punteros a diferentes estructuras como `AVLFile`, `ExtendibleHashing`, `SequentialFile`, o `BTree`, junto con un puntero a un objeto `Scanner`. El objetivo principal es inicializar estos punteros y asignarles los valores correspondientes, para luego llamar a `nextToken()` y obtener el primer token de la entrada de texto.
+
+2. **Método `parse()`**:
+   - Este método es el núcleo del análisis. Se encarga de recorrer los tokens hasta alcanzar el final del archivo, representado por `Token::END`. En cada iteración, se llama a `parseStatement()` para procesar cada instrucción SQL, y se espera que cada declaración termine con un `Token::SEMICOLON`. Si no es así, se genera un error.
+
+3. **Método `parseStatement()`**:
+   - Este método determina el tipo de instrucción SQL (como `CREATE`, `SELECT`, `INSERT` o `DELETE`) basado en el token actual. Una vez identificado el tipo de instrucción, se delega la tarea de análisis a un método específico. Si el token no coincide con una declaración esperada, se lanza un error.
+
+4. **Declaraciones**:
+   - Métodos como `parseCreateTable()`, `parseSelect()`, `parseInsert()`, y `parseDelete()` se encargan de desglosar y analizar declaraciones de SQL. Cada uno de estos métodos utiliza `expect()` para asegurarse de que los tokens sigan la estructura esperada y realizan las operaciones.
+
+5. **Métodos de Utilidad**:
+   - `parseCondition()` y `parseValues()` son dos métodos para analizar condiciones y listas de valores. Estos métodos son esenciales en la implementación de sentencias SQL como `SELECT` e `INSERT`.
+
+6. **Auxiliares**:
+   - Las funciones `expect()` y `expectOneOf()` permiten validar que el token actual coincida con lo que el parser espera encontrar en esa pos . Si el token no es el esperado, se genera un error, lo que ayuda a garantizar que la sintáxis sea correcta antes de proceder.
+
+### **TokenSQL (tokensSQL.h)**
+
+1. **Clase `Token`:**
+   - Esta clase representa un token, con dos atributos fundamentales: el tipo (`Type`) y el lexema (`lexema`). Además, incluye un conjunto de nombres descriptivos para cada tipo de token y sobrecarga operadores como `<<` para facilitar su impresión y depuración.
+
+2. **Clase `ReservedWords`:**
+   - Implementa una tabla de hash que asocia las palabras reservadas del lenguaje SQL con sus correspondientes tipos de token. Esto permite distinguir fácilmente entre palabras clave del lenguaje y otros identificadores, optimizando el proceso de análisis.
+
+3. **Clase `Scanner`:**
+   - El `Scanner` es responsable de tomar la entrada en formato de texto y dividirla en tokens. Aplica reglas gramaticales específicas para identificar diferentes componentes del lenguaje SQL y clasificar los tokens. El scanner es esencial para preparar el conjunto de tokens que serán interpretados por el parser.
+
+
+El sistema implementado combina un parser que interpreta tokens generados por el scanner, con la capacidad de analizar instrucciones SQL. Las declaraciones `CREATE`, `SELECT`, `INSERT`, y `DELETE` se procesan de manera estructurada mediante métodos especializados, asegurando que cada paso del proceso siga la gramática y estructura esperada de SQL. 
 
 
 
