@@ -11,8 +11,23 @@ void testing_Extendible(ExtendibleHashing<TK>& dh);
 int main() {
     AVLFile<const char*> file("data3.dat");
     ExtendibleHashing<const char*> dh("prueba1.dat",  "prueba2.dat");
-//    testing_AVL(file);
+    // testing_AVL(file);
     testing_Extendible(dh);
+    
+    // Testing sequential file:
+    // YT DATASET:
+    buildYT_test<const char *>();
+    showYT_test<const char*>();
+    // searchYT_test<const char *>();
+    // rangeYT_test<const char *>();
+    // removeYT_test<const char *>();
+    
+    // PLAYSTORE DATASET
+    // buildPlay_test<int>();
+    // showPlay_test<int>();
+    // searchPlay_test<int>();
+    // rangePlay_test<int>();
+    // removePlay_test<int>();
     return 0;
 }
 

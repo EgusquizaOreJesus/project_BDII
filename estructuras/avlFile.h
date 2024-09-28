@@ -11,16 +11,17 @@
 #include <sstream>
 #include "ReadCSV.h"
 #include <cstring>
+#include "FileStructureBase.h"
 using namespace std;
 
+
 template <typename TK>
-class AVLFile {
+class AVLFile: public FileStructure<TK>{
 private:
-    string filename;
     int pos_root;
     int head = -1;
     void insert(fstream &file, int& parent,int &pos, Record<TK> record, bool isRight = false);
-    bool remove(fstream &file, long parent,long pos_node, TK key);
+    bool remove(fstream &file, long parent,long pos_node, const char* key);
     int height(long pos_node, fstream &file);
     void update_head(long pos_node, Record<TK> a, fstream &file);
     void updateHeight(long pos_node, fstream &file);
@@ -31,19 +32,29 @@ private:
     int rota_left(long parent,long pos_node, fstream &file);
     int rota_right(long parent,long pos_node, fstream &file);
 public:
+    // constructor por defecto
+    AVLFile() = default;
+    void update_disk() override {
+
+    }
+
+    string filename;
     AVLFile(string filename);
-    void insert(Record<TK> record);
-    void printAll();
-    Record<TK> find(TK key);
+    void insert(Record<TK> record) override;
+    void printAll() override;
+    Record<TK> search(const char* key) override;
     void inorder();
     void bfs();
-    bool remove(TK key);
+    bool remove(const char* key) override;
+    ~AVLFile() = default;
+
 };
 
 
 template<typename TK>
 void AVLFile<TK>::insert(fstream &file, int &parent, int &pos, Record<TK> record, bool isRight) {
     if (this->pos_root == -1){
+        cout << "insertando en la raiz" << endl;
         this->pos_root = 0;
         file.seekp(0, ios::beg);   // posicionar el puntero al inicio del archivo
         file.write((char*)(&pos_root), sizeof(long));   // escribir la posicion de la raiz
@@ -52,23 +63,26 @@ void AVLFile<TK>::insert(fstream &file, int &parent, int &pos, Record<TK> record
         return;
     }
     if (pos == -1){
-        int cursor_pos = file.tellp();
         file.seekg(sizeof(long), ios::beg);
         file.read((char*)(&head), sizeof(int));
+        Record<TK> padre;
         if (head == -1){
-            if (isRight){
-                cursor_pos -= 12;
-            }else{
-                cursor_pos -= 16;
-            }
-
             file.seekp(0, ios::end);
 
             int index = file.tellp() / sizeof(Record<TK>);
             file.write((char*)(&record), sizeof(Record<TK>));
+
+
             // actualizo el puntero del registro anterior
-            file.seekp(cursor_pos, ios::beg);
-            file.write((char*)(&index), sizeof(int));
+            file.seekg(sizeof(long) + sizeof(long) + parent * sizeof(Record<TK>), ios::beg);
+            file.read((char*)(&padre), sizeof(Record<TK>));
+            if (padre > record){
+                padre.left = index;
+            }else{
+                padre.right = index;
+            }
+            file.seekp(sizeof(long) + sizeof(long) + parent * sizeof(Record<TK>), ios::beg);
+            file.write((char*)(&padre), sizeof(Record<TK>));
         }else{
             // insertar en el registro eliminado
             // nos movemos al siguiente registro eliminado
@@ -78,18 +92,21 @@ void AVLFile<TK>::insert(fstream &file, int &parent, int &pos, Record<TK> record
             int head_temporal = record_aux.next_del;
             file.seekp(sizeof(long), ios::beg);
             file.write((char*)(&head_temporal), sizeof(int));
-            if (isRight){
-                cursor_pos -= 12;
-            }else{
-                cursor_pos -= 16;
-            }
             // posicionamos en donde vamos a insertar:
             file.seekp(sizeof(long) + sizeof(long) + head * sizeof(Record<TK>), ios::beg);
             int index = file.tellp() / sizeof(Record<TK>);
             file.write((char*)(&record), sizeof(Record<TK>));
+
             // actualizo el puntero del registro anterior osea su padre
-            file.seekp(cursor_pos, ios::beg);
-            file.write((char*)(&index), sizeof(int));
+            file.seekg(sizeof(long) + sizeof(long) + parent * sizeof(Record<TK>), ios::beg);
+            file.read((char*)(&padre), sizeof(Record<TK>));
+            if (padre > record){
+                padre.left = index;
+            }else{
+                padre.right = index;
+            }
+            file.seekp(sizeof(long) + sizeof(long) + parent * sizeof(Record<TK>), ios::beg);
+            file.write((char*)(&padre), sizeof(Record<TK>));
             head = head_temporal;
         }
 
@@ -109,7 +126,7 @@ void AVLFile<TK>::insert(fstream &file, int &parent, int &pos, Record<TK> record
 }
 
 template<typename TK>
-bool AVLFile<TK>::remove(fstream &file, long parent, long pos_node, TK key) {
+bool AVLFile<TK>::remove(fstream &file, long parent, long pos_node, const char* key) {
     if (pos_node == -1){
         cerr << "no se encontro el registro -> ";
         return false;
@@ -434,6 +451,7 @@ int AVLFile<TK>::rota_right(long parent, long pos_node, fstream &file) {
 
 template<typename TK>
 AVLFile<TK>::AVLFile(string filename) {
+    cout << "Creando archivo: " << filename << endl;
     this->filename = filename;
     pos_root = -1;
     fstream file(filename, ios::in | ios::out | ios::binary);
@@ -457,7 +475,6 @@ void AVLFile<TK>::insert(Record<TK> record) {
     insert(file, pos_root,pos_root, record);
     file.close();
 }
-
 template<typename TK>
 void AVLFile<TK>::printAll() {
     fstream file(this->filename, ios::binary | ios::in | ios::out);
@@ -483,7 +500,7 @@ void AVLFile<TK>::printAll() {
 }
 
 template<typename TK>
-Record<TK> AVLFile<TK>::find(TK key) {
+Record<TK> AVLFile<TK>::search(const char* key){
     fstream file(filename, ios::in | ios::out | ios::binary);
     Record<TK> a;
     long pos = pos_root;
@@ -532,7 +549,7 @@ void AVLFile<TK>::bfs() {
 }
 
 template<typename TK>
-bool AVLFile<TK>::remove(TK key) {
+bool AVLFile<TK>::remove(const char* key) {
     fstream file(filename, ios::in | ios::out | ios::binary);
     bool result = remove(file,pos_root, pos_root, key);
     file.close();
