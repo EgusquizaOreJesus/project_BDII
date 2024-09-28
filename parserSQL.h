@@ -50,12 +50,14 @@ public:
     Parser(Scanner* scanner);
     void parse();
     char fileStructure[20];
+    vector<Record<TK>> records;
 
 
     const char* getStructure(){
         return fileStructure;
     }
     Record<TK> readRecord(vector<string> atributes);
+    vector<Record<TK>> getRecords();
     ~Parser() {
     }
 private:
@@ -80,6 +82,12 @@ template<class TK>
 Record<TK> Parser<TK>::readRecord(vector<string> atributes) {
     return Record<TK>();
 }
+
+template<class TK>
+vector<Record<TK>> Parser<TK>::getRecords() {
+    return records;
+}
+
 template<>
 Record<int> Parser<int>::readRecord(vector<string> values) {
     Record<int> record;
@@ -257,6 +265,7 @@ void Parser<TK>::parseSelect() {
         if (condition.op == "=") {
             const char* key = condition.value1.c_str();
             Record<TK> result = instance->search(key);
+            records.push_back(result);
             cout << result.show() << endl;
         }else if (condition.op == "between") {
             vector<Record<TK>> results;
@@ -267,6 +276,7 @@ void Parser<TK>::parseSelect() {
             const char* key = condition.value1.c_str();
             cout << "Searching for key: " << key << endl;
             Record<TK> result = instance->search(key);
+            records.push_back(result);
             cout << result.show() << endl;
 
         } else if (condition.op == "between") {

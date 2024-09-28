@@ -38,7 +38,7 @@ def read_csv(filename: str):
     with open(filename, mode='r', encoding='utf-8') as file:
         csv_reader = csv.reader(file)
         for row in csv_reader:
-            print(row)
+            # print(row)
             app = Application(
                 app_name=row[0],
                 app_id=row[1],
