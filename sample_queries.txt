@@ -1,0 +1,13 @@
+-- colocar ('anime_id') en cualquier operación CREATE
+-- los comentarios con doble guion no funcionan en el parser, no colocarlos!!--
+-- cuidar la sintaxis y colocar siempre un punto y coma al final de una query;
+-- los nombres de las tablas sólo pueden ser Youtube y Playstore
+-- los nombres de los índices son AVL, EXTENDIBLE
+-- tener cuidado con los nombres de los archivos!
+
+CREATE TABLE Playstore FROM FILE 'data_playstore.csv' USING INDEX EXTENDIBLE('anime_id');
+CREATE TABLE Youtube FROM FILE 'data_youtube.csv' USING INDEX EXTENDIBLE('anime_id');
+SELECT * FROM Playstore WHERE key = 'com.horodyski.grower';
+DELETE FROM Playstore WHERE key = 'com.horodyski.grower';
+SELECT * FROM Youtube WHERE key = '_0ovuLsnU1A';
+DELETE FROM Youtube WHERE key = '_0ovuLsnU1A';

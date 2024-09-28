@@ -1,5 +1,4 @@
 from flask import Flask, render_template, redirect, request
-from utils import * 
 import file_organization as fo
 import re
 

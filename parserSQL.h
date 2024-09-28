@@ -66,7 +66,7 @@ public:
     vector<Record<TK>> getRecords();
     ~Parser() {
     }
-    vector<Record<TK>> records;
+    // vector<Record<TK>> records;
 private:
     std::unique_ptr<FileStructure<TK>> instance;
 
@@ -242,7 +242,7 @@ void Parser<TK>::parseCreateTable() {
     cout << "records size: " << records.size() << endl;
     if (indexType->type == Token::AVL) {
         if (tableName == "Playstore") {
-            for (int i = 0; i < 10000; ++i) {
+            for (int i = 0; i < 5000; ++i) {
                 instance->insert(records[i]);
             }
             strcpy(fileStructure, "avlFilePlaystore");
@@ -250,7 +250,7 @@ void Parser<TK>::parseCreateTable() {
         } else if (tableName == "Youtube") {
             cout << "inserting youtube" << endl;
 //            cout << records[0].key << endl;
-            for (int i=0; i < 10000; i++){
+            for (int i=0; i < 5000; i++){
                 instance->insert(records[i]);
             }
 //            instance->printAll();
@@ -306,7 +306,6 @@ void Parser<TK>::parseSelect() {
                 std::cout << result.show() << std::endl;
             }
             cout << result.show() << endl;
-            records.push_back(result);
         }else if (condition.op == "between") {
             vector<Record<TK>> results = instance->range_search(condition.value1.c_str(), condition.value2.c_str());
             this->records = results;
@@ -322,7 +321,6 @@ void Parser<TK>::parseSelect() {
                 std::cout << result.show() << std::endl;
             }
             cout << result.show() << endl;
-            records.push_back(result);
         } else if (condition.op == "between") {
             vector<Record<TK>> results = instance->range_search(condition.value1.c_str(), condition.value2.c_str());
             this->records = results;
