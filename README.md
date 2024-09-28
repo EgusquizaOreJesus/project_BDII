@@ -712,6 +712,14 @@ La siguiente gráfica muestra los tiempos de inserción para el conjunto de dato
 
 Este benchmark destaca la importancia de seleccionar la estructura de datos adecuada según el tamaño del conjunto de datos y los requisitos de rendimiento.
 
+
+# Benchmark de Rango de Búsqueda en Estructuras de Datos
+
+Este benchmark compara el tiempo de búsqueda por rango de tres estructuras de datos: Árboles AVL, Hashing Extensible y Archivos Secuenciales. Las pruebas se realizaron en 1 conjunto de datos: **YouTube** . El objetivo es ver el rendimiento de inserciones con diferentes puntos de data y analizar la escala en el tiempo de cada inserciónn por estructura 
+## Dataset: YouTube
+![Youtube Dataset - Busqueda Times](imagen3.png)
+
+
 ## Integrantes
 |                    **Paolo Medrano Terán**                   |                          **Sebastián Chu**                          |                         **Fabricio Chavez**                          |                         **Andrea Coa**                         |                       **Jesús Ore Eguzquiza**                       |
 |:---------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:------------------------------------------------------------------:|:-------------------------------------------------------------:|
