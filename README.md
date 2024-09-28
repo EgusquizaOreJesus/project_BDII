@@ -671,6 +671,9 @@ public:
 ```
 El sistema implementado consta de un scanner que analiza el código de entrada y genera una secuencia de tokens. Luego, el parser se encarga de interpretar esos tokens y ejecutar las instrucciones SQL correspondientes. Se procesan declaraciones como `CREATE`, `SELECT`, `INSERT` y `DELETE`, asegurando que la sintaxis SQL sea correcta y que las
 
+## Obtener módulo de Python a partir de C++
+En la carpeta binding, hacer `git clone https://github.com/pybind/pybind11.git`. Crear directorio build y ejecutar el comando `cmake ..` estando dentro. Ejecutar `make` y el archivo file_organization... (el nombre dependerá de la computadora) se creará. Llevar este módulo a la misma carpeta donde se encuentra `app.py` y ya se puede importar como módulo de python.
+
 # Benchmark de Inserciones en Estructuras de Datos
 
 Este benchmark compara el tiempo de inserción de tres estructuras de datos: Árboles AVL, Hashing Extensible y Archivos Secuenciales. Las pruebas se realizaron en dos conjuntos de datos: **YouTube** y **Google Play Store**. El objetivo es ver el rendimiento de inserciones con diferentes puntos de data y analizar la escala en el tiempo de cada inserciónn por estructura 
