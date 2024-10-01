@@ -1,0 +1,40 @@
+CREATE TABLE Youtube FROM FILE 'data_youtube.csv' USING INDEX AVL('');
+CREATE TABLE Youtube FROM FILE 'data_youtube.csv' USING INDEX EXTENDIBLE('');
+CREATE TABLE Youtube FROM FILE 'data_youtube.csv' USING INDEX SEQUENTIAL('');
+
+CREATE TABLE Playstore FROM FILE 'data_playstore.csv' USING INDEX AVL('');
+CREATE TABLE Playstore FROM FILE 'data_playstore.csv' USING INDEX EXTENDIBLE('');
+CREATE TABLE Playstore FROM FILE 'data_playstore.csv' USING INDEX SEQUENTIAL('');
+
+IMPORTANTE
+Para cambiar entre tablas usar SET TABLE (Youtube o Playstore) INDEX (AVL, EXTENDIBLE o SEQUENTIAL)
+
+// SEARCH AVL
+SET TABLE Youtube INDEX AVL;
+SELECT * FROM Youtube WHERE key = '_1I7k_uMb4c';
+SELECT * FROM Youtube WHERE key BETWEEN '601W2iQR3kI' AND '60nDlMw5vFQ';
+
+SET TABLE Playstore INDEX AVL;
+SELECT * FROM Playstore WHERE key = 'com.bankinter.onboarding';
+SELECT * FROM Playstore WHERE key BETWEEN 'com.bankinter.onboarding' AND 'com.dakshapps.lakeway';
+
+// SEARCH SEQUENTIAL
+SET TABLE Youtube INDEX SEQUENTIAL;
+SELECT * FROM Youtube WHERE key = '_1I7k_uMb4c';
+SELECT * FROM Youtube WHERE key BETWEEN '601W2iQR3kI' AND '60nDlMw5vFQ';
+
+// SEARCH EXTENDIBLE
+SET TABLE Youtube INDEX EXTENDIBLE;
+SELECT * FROM Youtube WHERE key = '_1I7k_uMb4c';
+
+SET TABLE Playstore INDEX EXTENDIBLE;
+SELECT * FROM Playstore WHERE key = 'com.bankinter.onboarding';
+
+// INSERT AVL, SEQUENTIAL, EXTENDIBLE
+// ELEMENTO NUEVO 
+SELECT * FROM Youtube WHERE key = '__4c5JCHv32';
+INSERT INTO Youtube VALUES ('__4c5JCHv32', 'Mahou Shoujo Ep. 3', 'Aniplex', 3000000, 100000, 3512, 2000000);
+
+// REMOVE AVL, SEQUENTIAL, EXTENDIBLE
+SELECT * FROM Youtube WHERE key = '__4c5JCHv32';
+DELETE FROM Youtube WHERE key = '__4c5JCHv32';
