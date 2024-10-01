@@ -1,5 +1,9 @@
 # Proyecto 1: Organización ed Archivos (Data Fusion DB)
 
+# Presentacion de Canvas
+![image](https://github.com/user-attachments/assets/bb6db641-19ec-40b2-b99b-82b24c0058a3)
+ENLACE: https://www.canva.com/design/DAGSSjcCQIQ/50w5TLdLkj7vRDXtLjm8yA/edit?utm_content=DAGSSjcCQIQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
 ## Introducción
 
 El presente proyecto busca aplicar algoritmos de almacenamiento de archivos físicos y acceso concurrente.
