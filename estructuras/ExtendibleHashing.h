@@ -280,7 +280,6 @@ void ExtendibleHashing<TK>::split(Bucket<TK> &bucket, int index) {
     right_bucket.next = -1;
 
     // escribimos en el buffer los nuevos buckets
-
     buffer.insert_or_update(this->directory[index], left_bucket);
     // calculamos la posicion final
     int new_pos = this->pos_final + (sizeof(int) + sizeof(Bucket<TK>)) * this->count_split;

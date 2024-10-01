@@ -4,4 +4,7 @@ __pycache__/
 .venv
 data_playstore.csv
 data_youtube.csv
+frontend/data_playstore.csv
+frontend/data_youtube.csv
 YTStats2.csv
+myenv/
