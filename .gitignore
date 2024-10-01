@@ -4,4 +4,10 @@ __pycache__/
 .venv
 data_playstore.csv
 data_youtube.csv
+frontend/data_playstore.csv
+frontend/data_youtube.csv
 YTStats2.csv
+binding/build/
+binding/dist/
+binding/file_organization.egg-info/
+myenv/
