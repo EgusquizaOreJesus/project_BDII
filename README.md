@@ -4,6 +4,8 @@
 ![image](https://github.com/user-attachments/assets/bb6db641-19ec-40b2-b99b-82b24c0058a3)
 ENLACE: https://www.canva.com/design/DAGSSjcCQIQ/50w5TLdLkj7vRDXtLjm8yA/edit?utm_content=DAGSSjcCQIQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
+Para instrucciones de cómo usar la interfaz, véase [Manual de Interfaz](#manual-de-interfaz).
+
 ## Introducción
 
 El presente proyecto busca aplicar algoritmos de almacenamiento de archivos físicos y acceso concurrente.
@@ -726,6 +728,61 @@ Este benchmark compara el tiempo de búsqueda por rango de tres estructuras de d
 ## Dataset: YouTube
 ![Youtube Dataset - Busqueda Times](imagen3.png)
 
+# Manual de Interfaz
+
+## Setup
+
+Para ejecutar el programa, los datasets `data_playstore.csv` y `data_youtube.csv` deben estar dentro de la carpeta `frontend/`. Los datasets pueden encontrarse en [este enlace](https://drive.google.com/drive/folders/1-5IN0JWSXKm7z5EMqrcdwfBNpNqATShS?usp=sharing). La fuente original se especifica en [la sección de datasets](#dataset1).
+
+
+
+Instalar las librerías de Python `flask`, `flask_cors`, `pibind11`, y en la misma carpeta `frontent/`, ejecutar
+
+```bash
+python app.py
+```
+Si no se reconoce el módulo, debe copiar el archivo `binding/build/lib.win-amd64-cpython-312/file_organization.cp312-win_amd64.pyd` a la carpeta `frontend/`. Si tiene un sistema operativo distinto de Windows, posiblemente no funcione y tendrá que generar un módulo `file_organization` que funcione para su sistema a partir del archivo `binder.cpp` .
+
+Una vez resuelto esto, la interfaz debería verse de la siguiente manera:
+
+![alt text](frontend.png)
+
+## Ejecución de comandos
+
+En la carpeta raíz del proyecto se encuentra el archivo `sample_queries2.txt`, donde puede encontrar queries de ejemplo. Todas ellas se han probado y deberían funcionar. También puede crear sus propias queries, teniendo en cuenta las siguientes restricciones:
+
+- No se permiten comentarios de SQL (que empiezan con doble guion --)
+
+- Sólo se puede enviar una consulta a la vez.
+
+- Cada consulta debe terminar en punto y coma (;).
+
+- Tener cuidado con la sintaxis.
+
+Para crear las tablas, utilice las 6 primeras consultas (estas son las únicas consultas que no se deben modificar). Debe mantener el nombre de las tablas y de los archivos.
+
+En total el programa puede manejar 6 "tablas": Para cada uno de los dos dataset se puede usar los 3 índices. Debido a esto, se introdujo el comando `SET TABLE`:
+
+```sql
+SET TABLE <tablename> INDEX <indexname>;
+```
+
+Si por ejemplo usted realizó una consulta para la tabla `Youtube` con `EXTENDIBLE`, y ahora desea consultar `Playstore` con `AVL`, antes de realizar la consulta debe ejecutar:
+
+```sql
+SET TABLE Playstore INDEX AVL;
+```
+¡No olvide respetar las mayúsculas y colocar el punto y coma al final! 
+
+Una vez hecho esto, en la parte inferior debería aparecer un mensaje similar al siguiente:
+
+![SET TABLE exitos](set_table.png)
+
+Ahora ya puede ejecutar la consulta, por ejemplo:
+
+```sql
+SELECT * FROM Playstore WHERE key = 'com.bankinter.onboarding';
+```
 
 ## Integrantes
 |                    **Paolo Medrano Terán**                   |                          **Sebastián Chu**                          |                         **Fabricio Chavez**                          |                         **Andrea Coa**                         |                       **Jesús Ore Eguzquiza**                       |
